@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+'''
+first argument should be the config you're wishing to extract info from
+'''
+
+
+def interpret_config(config_path : str):
+    '''
+    takes the provided config file and interprets it, then passes off the resulting work
+    to the relevant functions
+    '''
+
+    
+
+
+import sys
+
+if __name__ == '__main__':
+    
+    config_path = sys.argv[1]
+
+    interpret_config(config_path)
