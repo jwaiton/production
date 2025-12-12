@@ -3,12 +3,22 @@
 first argument should be the config you're wishing to extract info from
 '''
 
+from typing import List, Dict
 
-def interpret_config(config_path : str):
+def interpret_config(config_path : str) -> List[Dict]:
     '''
     takes the provided config file and interprets it, then passes off the resulting work
     to the relevant functions
+
+
+    will be:
+    - city/pack
+      - runs of relevance
+      - io
+      - parameters
+    iteratively for each.
     '''
+    
 
     
 
