@@ -5,11 +5,12 @@ first argument should be the config you're wishing to extract info from
 import os
 import sys
 
+from pathlib import Path
 
-
+from contextlib import redirect_stdout
 from typing import List, Dict
 from omegaconf import OmegaConf
-
+from datetime import datetime
 
 # add prod directory to path
 PROD_DIR = str(os.environ['PROD_DIR'])
@@ -39,19 +40,34 @@ def runner(config_path : str) -> None:
 
     # extract globals
     global_vars = extract_globals(cfg)
- 
     # create timestamp
     now = datetime.now()
     global_vars['timestamp'] = now.strftime('%y%m%d_%H%M')
-    
-   
-    print_cfg(global_vars)
-    print_cfg(cfg, indent = 4)
+
+
+    tag_path = f"{PROD_DIR}/tags/{global_vars['tag']}" 
+    # extract tag, check it doesnt exist already
+    if Path(tag_path).exists():
+        raise FileExistsError(f"{global_vars['tag']} already exists! Select another.")
+
 
     # make config directory
-    full_config_path = os.path.join(global_vars.global_path, global_vars.config_location)
+    full_config_path = os.path.join(global_vars['global_path'], global_vars['config_location'])
     Path(full_config_path).mkdir(parents = True, exist_ok = True)
     global_vars['config_path'] = full_config_path
+
+
+   # write this config setup to a tag, tags must be altered
+    with open(f'{tag_path}.tag', 'w') as f:
+        with redirect_stdout(f):
+            print_cfg(global_vars)
+            print_cfg(cfg, indent = 4)
+
+
+    # print configuration
+    print_cfg(global_vars)
+    print_cfg(cfg, indent = 4)
+        
 
     for executables, config_dict in cfg.items():
 
