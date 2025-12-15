@@ -39,14 +39,29 @@ def runner(config_path : str) -> None:
 
     # extract globals
     global_vars = extract_globals(cfg)
+ 
+    # create timestamp
+    now = datetime.now()
+    global_vars['timestamp'] = now.strftime('%y%m%d_%H%M')
     
-    print(global_vars)
+   
+    print_cfg(global_vars)
     print_cfg(cfg, indent = 4)
+
+    # make config directory
+    full_config_path = os.path.join(global_vars.global_path, global_vars.config_location)
+    Path(full_config_path).mkdir(parents = True, exist_ok = True)
+    global_vars['config_path'] = full_config_path
+
+    for executables, config_dict in cfg.items():
+
+        # IC executable or otherwise
+        if executables[:2] == 'IC':
+            process_IC(global_vars, config_dict, executables)
+        else:
+            process_binary(global_vars, config_dict, executables)
 
 if __name__ == '__main__':
     
-
-
     config_path = sys.argv[1]
-
     runner(config_path)
