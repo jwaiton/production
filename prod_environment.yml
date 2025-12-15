@@ -1,0 +1,8 @@
+name: PROD-3.12-15-25
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python = 3.12
+  - numpy  = 1.26.4
+  - omegaconf = 2.3.0
