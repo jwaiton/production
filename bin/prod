@@ -22,6 +22,7 @@ from core.config_io import extract_globals
 from core.io        import print_cfg
 from core.logging   import setup_logging
 
+import core.processing as proc
 
 def runner(config_path : str) -> None: 
     '''
@@ -73,14 +74,38 @@ def runner(config_path : str) -> None:
     print_cfg(global_vars)
     print_cfg(cfg, indent = 4)
         
+    logging.info('Beginning execution...')
 
-    for executables, config_dict in cfg.items():
+    if global_vars['flow_priority'] == 'JOB':
 
-        # IC executable or otherwise
-        if executables[:2] == 'IC':
-            process_IC(global_vars, config_dict, executables)
-        else:
-            process_binary(global_vars, config_dict, executables)
+        # job first 
+        for executables, config_dict in cfg.items():
+
+            # runs second (completing them all first)
+            for RN in global_vars['RUNS']:
+                logging.info(f'{executables} initiated for R{RN}...')               
+                config_dict['RUN_NUMBER'] = RN
+                # IC executable or otherwise
+                if executables[:2] == 'IC':
+                    proc.process_IC(global_vars, config_dict, executables)
+                else:
+                    proc.process_binary(global_vars, config_dict, executables)
+
+    elif global_vars['flow_priority'] == 'RUN':
+        
+        # run first
+        for RN in global_vars['RUNS']:
+            
+            # jobs second (completing them all first)
+            for executables, config_dict in cfg.items():
+                logging.info(f'{executables} initiated for R{RN}...')
+                # IC executable or otherwise
+                config_dict['RUN_NUMBER'] = RN
+                if executables[:2] == 'IC':
+                    proc.process_IC(global_vars, config_dict, executables)
+                else:
+                    proc.process_binary(global_vars, config_dict, executables)
+
 
 if __name__ == '__main__':
     
