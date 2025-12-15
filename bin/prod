@@ -2,12 +2,25 @@
 '''
 first argument should be the config you're wishing to extract info from
 '''
+import os
+import sys
+
+
 
 from typing import List, Dict
 from omegaconf import OmegaConf
 
 
-def interpret_config(config_path : str) -> List[Dict]:
+# add prod directory to path
+PROD_DIR = str(os.environ['PROD_DIR'])
+sys.path.append(os.path.expanduser(PROD_DIR))
+
+from core.config_io import extract_globals
+from core.io        import print_cfg
+
+
+
+def runner(config_path : str) -> None: 
     '''
     takes the provided config file and interprets it, then passes off the resulting work
     to the relevant functions
@@ -20,23 +33,20 @@ def interpret_config(config_path : str) -> List[Dict]:
       - parameters
     iteratively for each.
     '''
-
-    cfg = OmegaConf.load(config_path)
     
-    print(cfg)
-    if 'global' in cfg:
-        print('global shit here!')
-        
-        for key, val in cfg['global'].items():
-            print(key, val)
+    # load config
+    cfg = OmegaConf.load(config_path)
 
-        cfg.pop('global', None)
-
-    print(cfg)
-import sys
+    # extract globals
+    global_vars = extract_globals(cfg)
+    
+    print(global_vars)
+    print_cfg(cfg, indent = 4)
 
 if __name__ == '__main__':
     
+
+
     config_path = sys.argv[1]
 
-    interpret_config(config_path)
+    runner(config_path)
