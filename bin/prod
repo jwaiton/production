@@ -45,10 +45,10 @@ def runner(config_path : str) -> None:
     global_vars['timestamp'] = now.strftime('%y%m%d_%H%M')
 
 
-    tag_path = f"{PROD_DIR}/tags/{global_vars['tag']}" 
+    tag_path = f"{PROD_DIR}/tags/{global_vars['tag']}.tag" 
     # extract tag, check it doesnt exist already
     if Path(tag_path).exists():
-        raise FileExistsError(f"{global_vars['tag']} already exists! Select another.")
+        raise FileExistsError(f"Tag {global_vars['tag']} already exists! Select another.")
 
 
     # make config directory
