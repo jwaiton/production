@@ -2,6 +2,10 @@ import configparser
 import logging
 import ast
 
+from typing import Dict
+
+from omegaconf import DictConfig
+
 def read_config_file(file_path  :  str) -> dict:
     '''
     Read config file and extract relevant information returned as a dictionary.
@@ -39,3 +43,27 @@ def read_config_file(file_path  :  str) -> dict:
             arg_dict[key] = ast.literal_eval(config[section][key])
 
     return arg_dict
+
+def print_cfg(cfg : DictConfig, indent: int = 0) -> None:
+    # set base width of display
+    width = 30
+
+    max_key_width = max(len(str(k)) for k in cfg.keys())
+
+    # adding an indent
+    space = " " * indent
+
+
+    print(f'{space}===================')
+    for key, value in cfg.items():
+        # self nesting
+        if (type(value) is DictConfig) or (type(value) is dict):
+            print(f'{space}{key:<{max_key_width}}  :')
+            print_cfg(value, indent = indent + 4)
+        else:
+            print(f'{space}{key:<{max_key_width}}  :  {value}')
+
+        # outer layer, add some padding. this is lazy
+        if indent == 4:
+            print('\n')
+
