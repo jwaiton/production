@@ -19,7 +19,9 @@ def process_IC(global_vars : Dict,
 
     # create directory for storing configs
     config_name = f"{name}-{global_vars['tag']}-{global_vars['timestamp']}"
-    specific_config_path = os.path.join(global_vars['config_path'], )
+    # config path based on city and run number
+    specific_config_path = os.path.join(global_vars['config_path'], cfg['city'])
+    specific_config_path = os.path.join(specific_config_path, cfg['RUN_NUMBER'])
     Path(specific_config_path).mkdir(parents = True, exist_ok = True)
 
     proc_style = processing_style[global_vars['processing_style']]
