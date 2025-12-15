@@ -4,6 +4,8 @@ first argument should be the config you're wishing to extract info from
 '''
 
 from typing import List, Dict
+from omegaconf import OmegaConf
+
 
 def interpret_config(config_path : str) -> List[Dict]:
     '''
@@ -18,11 +20,19 @@ def interpret_config(config_path : str) -> List[Dict]:
       - parameters
     iteratively for each.
     '''
+
+    cfg = OmegaConf.load(config_path)
     
+    print(cfg)
+    if 'global' in cfg:
+        print('global shit here!')
+        
+        for key, val in cfg['global'].items():
+            print(key, val)
 
-    
+        cfg.pop('global', None)
 
-
+    print(cfg)
 import sys
 
 if __name__ == '__main__':
