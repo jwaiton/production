@@ -4,6 +4,8 @@ first argument should be the config you're wishing to extract info from
 '''
 import os
 import sys
+import logging
+
 
 from pathlib import Path
 
@@ -18,7 +20,7 @@ sys.path.append(os.path.expanduser(PROD_DIR))
 
 from core.config_io import extract_globals
 from core.io        import print_cfg
-
+from core.logging   import setup_logging
 
 
 def runner(config_path : str) -> None: 
@@ -45,9 +47,12 @@ def runner(config_path : str) -> None:
     global_vars['timestamp'] = now.strftime('%y%m%d_%H%M')
 
 
-    tag_path = f"{PROD_DIR}/tags/{global_vars['tag']}.tag" 
+    logging.info(f"Job loaded, timestamp {global_vars['timestamp']}")
+
+    tag_path = f"{PROD_DIR}/tags/{global_vars['tag']}.tag"
     # extract tag, check it doesnt exist already
     if Path(tag_path).exists():
+        logging.error(f"Tag already exists: {global_vars['tag']}")
         raise FileExistsError(f"Tag {global_vars['tag']} already exists! Select another.")
 
 
@@ -58,7 +63,7 @@ def runner(config_path : str) -> None:
 
 
    # write this config setup to a tag, tags must be altered
-    with open(f'{tag_path}.tag', 'w') as f:
+    with open(f'{tag_path}', 'w') as f:
         with redirect_stdout(f):
             print_cfg(global_vars)
             print_cfg(cfg, indent = 4)
@@ -79,5 +84,6 @@ def runner(config_path : str) -> None:
 
 if __name__ == '__main__':
     
+    setup_logging()
     config_path = sys.argv[1]
     runner(config_path)
