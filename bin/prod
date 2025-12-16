@@ -123,44 +123,20 @@ def runner(config_path : str) -> None:
         with redirect_stdout(f):
             print_cfg(global_vars)
             print_cfg(cfg, indent = 4)
-
-
     # print configuration
     print_cfg(global_vars)
     print_cfg(cfg, indent = 4)
-        
+ 
+    # collect all sweeps
+    jobs = list(expand_sweeps(cfg))
+    runs = list(global_vars['RUNS'])
+       
     logging.info('Beginning execution...')
-
-    if global_vars['flow_priority'] == 'JOB':
-
-        # job first 
-        for executables, config_dict in cfg.items():
-
-            # runs second (completing them all first)
-            for RN in global_vars['RUNS']:
-                logging.info(f'{executables} initiated for R{RN}...')               
-                config_dict['RUN_NUMBER'] = RN
-                # IC executable or otherwise
-                if executables[:2] == 'IC':
-                    proc.process_IC(global_vars, config_dict, executables)
-                else:
-                    proc.process_binary(global_vars, config_dict, executables)
-
-    elif global_vars['flow_priority'] == 'RUN':
-        
-        # run first
-        for RN in global_vars['RUNS']:
-            
-            # jobs second (completing them all first)
-            for executables, config_dict in cfg.items():
-                logging.info(f'{executables} initiated for R{RN}...')
-                # IC executable or otherwise
-                config_dict['RUN_NUMBER'] = RN
-                if executables[:2] == 'IC':
-                    proc.process_IC(global_vars, config_dict, executables)
-                else:
-                    proc.process_binary(global_vars, config_dict, executables)
-
+    for executable, RN, config_dict in iter_execution_units(global_vars['flow_priority'], jobs, runs):
+        logging.info(f"{executable} initiated for R{RN}...")
+        config_dict["run_number"] = RN
+        print_cfg(config_dict)
+        select_execution_type(executable, config_dict, global_vars)
 
 if __name__ == '__main__':
     
