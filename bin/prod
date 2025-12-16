@@ -23,7 +23,6 @@ sys.path.append(os.path.expanduser(PROD_DIR))
 from core.config_io  import extract_globals
 from core.io         import print_cfg
 from core.logging    import setup_logging
-from core.immutables import FLOW_ORDERS
 import core.processing as proc
 
 
