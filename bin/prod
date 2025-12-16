@@ -5,24 +5,79 @@ first argument should be the config you're wishing to extract info from
 import os
 import sys
 import logging
-
+import copy
 
 from pathlib import Path
+from itertools import product
 
 from contextlib import redirect_stdout
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from omegaconf import OmegaConf
+from omegaconf import DictConfig
 from datetime import datetime
 
 # add prod directory to path
 PROD_DIR = str(os.environ['PROD_DIR'])
 sys.path.append(os.path.expanduser(PROD_DIR))
 
-from core.config_io import extract_globals
-from core.io        import print_cfg
-from core.logging   import setup_logging
-
+from core.config_io  import extract_globals
+from core.io         import print_cfg
+from core.logging    import setup_logging
+from core.immutables import FLOW_ORDERS
 import core.processing as proc
+
+
+def expand_sweeps(cfg : DictConfig): 
+    '''
+    yield executable and config_dict
+    where the config_dict includes one sweep combination    
+    '''
+    for executable, base_cfg in cfg.items():
+        sweep = base_cfg.get("sweep", {})
+        fixed = base_cfg.get("fixed", {})
+    
+        # if there is no sweep
+        if not sweep:
+            cfg_copy = copy.deepcopy(fixed)
+            yield executable, cfg_copy
+            continue
+        
+        keys   = list(sweep.keys())
+        values = list(sweep.values())
+
+        for combo in product(*values):
+            cfg_copy = copy.deepcopy(fixed)
+            cfg_copy.update(dict(zip(keys, combo)))
+            yield executable, cfg_copy
+
+
+def iter_execution_units(flow : str,
+                         jobs : List,
+                         runs : List):
+    '''
+    create the necessary combinations for execution
+    '''
+    if flow == "JOB":
+        return ((executable, RN, config_dict) for (executable, config_dict), RN in product(jobs, runs))
+    elif flow == "RUN":
+        return ((executable, RN, config_dict) for RN, (executable, config_dict) in product(run, job))
+    else:
+        raise ValueError(f"Unknown flow priority: {flow}")
+
+def select_execution_type(name : str,
+                          config_dict : DictConfig,
+                          global_vars : Dict):
+    '''
+    decides the execution method, IC or otherwise
+    '''
+    # IC executable or otherwise
+    if name[:2] == 'IC':
+        config_dict['city'] = name.split('-')[-1]
+        proc.process_IC(global_vars, config_dict, name)
+    else:
+        proc.process_binary(global_vars, config_dict, name)
+
+
 
 def runner(config_path : str) -> None: 
     '''
