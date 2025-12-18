@@ -11,7 +11,7 @@ from pathlib import Path
 from itertools import product
 
 from contextlib import redirect_stdout
-from typing import List, Dict, Tuple
+from typing import List, Dict, Generator 
 from omegaconf import OmegaConf
 from omegaconf import DictConfig
 from datetime import datetime
@@ -24,6 +24,37 @@ from core.config_io  import extract_globals
 from core.io         import print_cfg
 from core.logging    import setup_logging
 import core.processing as proc
+
+def generate_tag(global_vars : Dict,
+                 cfg         : DictConfig) -> None:
+    '''
+    write tag out
+    '''
+
+    tag_path = f"{PROD_DIR}/tags/{global_vars['tag']}.tag"
+    # extract tag, check it doesnt exist already
+    if Path(tag_path).exists():
+        logging.error(f"Tag already exists: {global_vars['tag']}")
+        raise FileExistsError(f"Tag {global_vars['tag']} already exists! Select another.")
+
+
+    # write this config setup to a tag, tags must be altered
+    with open(f'{tag_path}', 'w') as f:
+        with redirect_stdout(f):
+            print_cfg(global_vars)
+            print_cfg(cfg, indent = 4)
+
+
+
+def expand_config(cfg : DictConfig) -> Generator:
+    '''
+    given the config, generate the pairing of:
+        executable, config
+    used to run the city
+    '''
+
+    for executable, base_cfg in cfg.items():
+        yield executable, base_cfg
 
 
 def expand_sweeps(cfg : DictConfig): 
