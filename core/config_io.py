@@ -3,12 +3,13 @@ import logging
 import re
 from pathlib import Path
 
-from typing import Dict
+from typing import Dict, List
 
 from omegaconf import DictConfig
+from omegaconf.errors import ConfigKeyError
 
 from core.immutables import processing_style
-
+from core.io         import prepend_all, quote_strings
 def extract_globals(cfg : DictConfig) -> Dict:
     global_vars = {}
     if 'global' in cfg:
@@ -22,7 +23,7 @@ def extract_globals(cfg : DictConfig) -> Dict:
     return global_vars
 
 
-def alter_config(config_text : str, alterations : dict) -> str:
+def alter_config(config_text : str, alterations : DictConfig) -> str:
     '''
     take a python config from IC and alter it to match requirements
     '''
@@ -42,32 +43,127 @@ def alter_config(config_text : str, alterations : dict) -> str:
     return config_text
 
 
+
+
+def write_configs(input_names : List, output_names : List, config_names : [List], config : DictConfig, global_vars : Dict) -> None:
+    '''
+    write out the config files
+    '''
+    match global_vars['processing_style']:
+        case 'LDC':
+            for i in range(global_vars['LDCs']):
+                for i_names, o_names, c_names in zip(input_names[i], output_names[i], config_names[i]):
+                    conf_dict = {'file_out' : o_names, 'files_in' : i_names}
+                    print('conf_dict')
+                    print(conf_dict)
+                    local_config = alter_config(config, conf_dict)
+                    # write it to the file
+                    with open(c_names, 'w') as f:
+                        f.write(local_config)
+        case 'FOLDER':
+            print('folders not been set up yet')
+        case 'FILE':
+            print('files not been set up yet')
+        case _:
+            print('something else (fuck up)')
+
+    '''
+    # for each config name and output_name, write a config
+    for o_names, c_names in zip(output_names, config_names):
+        conf_dict = {'file_out' : o_names}
+        print(config)
+        print('='*20)
+        local_config = alter_config(config, conf_dict)
+        print(local_config)
+        exit()
+    '''
+
+
+def collect_input_names(global_vars : Dict,
+                        cfg : DictConfig) -> List:
+    '''
+    using the provided information, ascertains input names
+    assuming data is not from the work-chain
+    '''
+
+    path = f"{cfg['pre_path']}{cfg['run_number']}/{cfg['post_path']}"
+
+
+    all_inputs = []
+
+    match global_vars['processing_style']:
+        case 'LDC':
+            for i in range(global_vars['LDCs']):
+                full_path = f"{path}ldc{i+1}/"
+                all_inputs.append([f"'{os.path.join(full_path, f)}'" for f in os.listdir(full_path) if f.endswith('.h5')])
+                # stupid ' " stuff to retain stringness in configs
+
+        case 'FOLDER':
+            print('folders not been set up yet')
+        case 'FILE':
+            print('files not been set up yet')
+        case _:
+            print('something else (fuck up)')
+
+
+    return all_inputs
+
+
+def extract_output_names(global_vars : Dict,
+                         cfg         : DictConfig,
+                         input_names : List) -> List:
+    '''
+    provided with an input file, create the corresponding output file
+    this assumes the structure of:
+
+    executable_runnumber_number_whateverelse.h5
+
+    breaks otherwise
+    '''
+
+    data_path = f"{global_vars['global_path']}{global_vars['tag']}/data/{cfg['city']}/{cfg['run_number']}/"
+    conf_path = f"{global_vars['global_path']}{global_vars['tag']}/configs/{cfg['city']}/{cfg['run_number']}/"
+
+    output_files = []
+    config_files = []
+    match global_vars['processing_style']:
+        case 'LDC':
+            for i in range(global_vars['LDCs']):
+                LDC_files  = input_names[i]
+                file_names = [f.split('/')[-1] for f in LDC_files]
+                # generate them based on the number
+                numbers    = [f.split('_')[2] for f in file_names]
+
+                output_files.append([f"ldc{i+1}/{cfg['city']}_{cfg['run_number']}_{n}_ldc{i+1}_{global_vars['tag']}.h5" for n in numbers])
+                config_files.append([f"ldc{i+1}/{cfg['city']}_{cfg['run_number']}_{n}_ldc{i+1}_{global_vars['tag']}.conf" for n in numbers])
+        case 'FOLDER':
+            print('folders not been set up yet')
+        case 'FILE':
+            print('files not been set up yet')
+        case _:
+            print('something else (fuck up)')
+
+    output_files = prepend_all(output_files, data_path)
+    # wrap the output files in '' for formatting
+    output_files = quote_strings(output_files)
+    config_files = prepend_all(config_files, conf_path)
+    return output_files, config_files
+
+
 def generate_folder_structure(global_vars : Dict,
-                              cfg : DictConfig) -> None:
-
-    # extract the specific sweep for this run
-    parameter_folder = ''
-    if cfg['sweep_params']:
-        for param in cfg['sweep_params']:
-            parameter_folder += param
-            parameter_folder += str(cfg[param])
-            parameter_folder += '_'
-        # remove trailing _
-        parameter_folder = parameter_folder[:-1]
-
+                              cfg : DictConfig) -> tuple[Path, Path]:
+    '''
+    generate folder structure based on global_vars and cfg
+    '''
     # create config location
     specific_config_path = os.path.join(global_vars['config_path'], cfg['city'])
     specific_config_path = os.path.join(specific_config_path, cfg['run_number'])
-    if parameter_folder != '':
-        specific_config_path = os.path.join(specific_config_path, parameter_folder)
 
     Path(specific_config_path).mkdir(parents = True, exist_ok = True)
 
     # create data location
     specific_data_path = os.path.join(global_vars['data_path'], cfg['city'])
     specific_data_path = os.path.join(specific_data_path, cfg['run_number'])
-    if parameter_folder != '':
-        specific_data_path = os.path.join(specific_data_path, parameter_folder)
 
     Path(specific_data_path).mkdir(parents = True, exist_ok = True)
 
@@ -83,7 +179,6 @@ def generate_folder_structure(global_vars : Dict,
                 Path(f'{specific_config_path}/ldc{i+1}').mkdir(parents = True, exist_ok = True)
                 Path(f'{specific_data_path}/ldc{i+1}').mkdir(parents = True, exist_ok = True)
                 logging.info(f'Generated config location at {specific_config_path}/ldc{i+1}')
-                # generate all config files based on input files
 
 
 
@@ -94,4 +189,4 @@ def generate_folder_structure(global_vars : Dict,
         case _:
             print('something else (fuck up)')
 
-
+    return (specific_config_path, specific_data_path)
