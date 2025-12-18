@@ -67,3 +67,19 @@ def print_cfg(cfg : DictConfig, indent: int = 0) -> None:
         if indent == 4:
             print('\n')
     print(f'{space}===================')
+
+
+def prepend_all(data, prefix):
+    if isinstance(data, list):
+        return [prepend_all(x, prefix) for x in data]
+    else:
+        return prefix + data
+
+
+def quote_strings(data):
+    if isinstance(data, list):
+        return [quote_strings(x) for x in data]
+    elif isinstance(data, str):
+        return f"'{data}'"
+    else:
+        return data # catch for the weird things you shouldnt pass in
