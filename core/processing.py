@@ -11,7 +11,7 @@ from omegaconf  import DictConfig
 
 from core.io        import print_cfg
 #from core.config_io import generate_configs
-from core.config_io import alter_config
+from core.config_io import alter_config, generate_folder_structure
 
 from core.immutables import processing_style
 
@@ -27,7 +27,16 @@ def process_IC(global_vars : Dict,
     # create directory for storing configs
     config_name = f"{name}-{global_vars['tag']}-{global_vars['timestamp']}"
 
+    # define the generalised config shape here
+    config_path = Path(f"{PROD_DIR}/configs/IC_configs/{cfg['city']}.conf")
+    logging.info(f'Read/alter config from {config_path}')
+    config = config_path.read_text()
+    config = alter_config(config, cfg)
+
+    # generate folder structure
+    generate_folder_structure(global_vars, cfg)
     # extract the specific sweep for this run
+    '''
     parameter_folder = ''
     if cfg['sweep_params']:
         for param in cfg['sweep_params']:
@@ -57,12 +66,6 @@ def process_IC(global_vars : Dict,
 
     logging.info(f'Generating configs with proc_style: {proc_style}')
 
-    # define the generalised config shape here
-    config_path = Path(f"{PROD_DIR}/configs/IC_configs/{cfg['city']}.conf")
-    logging.info(f'Read/alter config from {config_path}')
-    config = config_path.read_text()
-    config = alter_config(config, cfg)
-
 
     match global_vars['processing_style']:
         case "LDC":
@@ -83,7 +86,7 @@ def process_IC(global_vars : Dict,
             print('something else (fuck up)')
 
 
-
+    '''
     # extract the base config template
     #generate_configs(global_vars,
     #                 cfg,
