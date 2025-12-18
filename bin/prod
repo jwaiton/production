@@ -111,11 +111,16 @@ def runner(config_path : str) -> None:
         raise FileExistsError(f"Tag {global_vars['tag']} already exists! Select another.")
 
 
-    # make config directory
-    full_config_path = os.path.join(global_vars['global_path'], global_vars['config_location'])
+    # make data storage directory
+    full_storage_path = os.path.join(global_vars['global_path'], global_vars['tag'])
+     
+    full_config_path  = os.path.join(full_storage_path, global_vars['config_location'])
     Path(full_config_path).mkdir(parents = True, exist_ok = True)
     global_vars['config_path'] = full_config_path
 
+    full_data_path    = os.path.join(full_storage_path, 'data')
+    Path(full_data_path).mkdir(parents = True, exist_ok = True)
+    global_vars['data_path'] = full_data_path
 
    # write this config setup to a tag, tags must be altered
     with open(f'{tag_path}', 'w') as f:
