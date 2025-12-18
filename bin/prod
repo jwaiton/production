@@ -150,26 +150,26 @@ def runner(config_path : str) -> None:
     generate_tag(global_vars, cfg)
     print_cfg(global_vars)
     print_cfg(cfg, indent = 4)
- 
-    # collect all sweeps
-    jobs = list(expand_sweeps(cfg))
-    runs = list(global_vars['RUNS'])
+
+    # collect job and run permutations
+    jobs = list(expand_config(cfg))
+    runs = global_vars['RUNS']
     logging.info('Beginning execution...')
-
-    # extract the sweeping parameters explicitly for labelling purposes
-    for executable, base_cfg in cfg.items():
-        sweep = base_cfg.get("sweep", {})
-        if sweep:
-            sweep_params = list(sweep.keys())
-
+    
+    # define initialisation step to ensure folders are structured initially structured, then copied
+    global_vars['initial_run'] = True
+    global_vars['work-chain'] = []
 
     for executable, RN, config_dict in iter_execution_units(global_vars['flow_priority'], jobs, runs):
         logging.info(f"{executable} initiated for R{RN}...")
         config_dict["run_number"] = RN
-        config_dict['sweep_params'] = sweep_params
-        print_cfg(config_dict)
         select_execution_type(executable, config_dict, global_vars)
-
+        
+        global_vars['work-chain'].append((executable, RN))
+        
+        if global_vars['initial_run']:
+            global_vars['initial_run'] = False
+    print(global_vars['work-chain'])
 if __name__ == '__main__':
     
     setup_logging()
