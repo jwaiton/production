@@ -90,7 +90,7 @@ def iter_execution_units(flow : str,
     if flow == "JOB":
         return ((executable, RN, config_dict) for (executable, config_dict), RN in product(jobs, runs))
     elif flow == "RUN":
-        return ((executable, RN, config_dict) for RN, (executable, config_dict) in product(run, job))
+        return ((executable, RN, config_dict) for RN, (executable, config_dict) in product(runs, jobs))
     else:
         raise ValueError(f"Unknown flow priority: {flow}")
 
@@ -134,17 +134,7 @@ def runner(config_path : str) -> None:
 
 
     logging.info(f"Job loaded, timestamp {global_vars['timestamp']}")
-
-    tag_path = f"{PROD_DIR}/tags/{global_vars['tag']}.tag"
-    # extract tag, check it doesnt exist already
-    if Path(tag_path).exists():
-        logging.error(f"Tag already exists: {global_vars['tag']}")
-        raise FileExistsError(f"Tag {global_vars['tag']} already exists! Select another.")
-
-    # currently multiple sweeps across differing cities aren't enabled
-    if sum("sweep" in inner for inner in cfg.values()) > 1:
-        raise ValueError("Parameter sweeps are only available for one city at a time!")
-
+    
     # make data storage directory
     full_storage_path = os.path.join(global_vars['global_path'], global_vars['tag'])
      
@@ -156,13 +146,8 @@ def runner(config_path : str) -> None:
     Path(full_data_path).mkdir(parents = True, exist_ok = True)
     global_vars['data_path'] = full_data_path
 
-   # write this config setup to a tag, tags must be altered
-    with open(f'{tag_path}', 'w') as f:
-        with redirect_stdout(f):
-            print_cfg(global_vars)
-            print_cfg(cfg, indent = 4)
-
-    # print configuration
+    # generate and print tag
+    generate_tag(global_vars, cfg)
     print_cfg(global_vars)
     print_cfg(cfg, indent = 4)
  
