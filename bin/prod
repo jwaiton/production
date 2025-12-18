@@ -110,6 +110,9 @@ def runner(config_path : str) -> None:
         logging.error(f"Tag already exists: {global_vars['tag']}")
         raise FileExistsError(f"Tag {global_vars['tag']} already exists! Select another.")
 
+    # currently multiple sweeps across differing cities aren't enabled
+    if sum("sweep" in inner for inner in cfg.values()) > 1:
+        raise ValueError("Parameter sweeps are only available for one city at a time!")
 
     # make data storage directory
     full_storage_path = os.path.join(global_vars['global_path'], global_vars['tag'])
@@ -127,6 +130,7 @@ def runner(config_path : str) -> None:
         with redirect_stdout(f):
             print_cfg(global_vars)
             print_cfg(cfg, indent = 4)
+
     # print configuration
     print_cfg(global_vars)
     print_cfg(cfg, indent = 4)
@@ -134,11 +138,19 @@ def runner(config_path : str) -> None:
     # collect all sweeps
     jobs = list(expand_sweeps(cfg))
     runs = list(global_vars['RUNS'])
-       
     logging.info('Beginning execution...')
+
+    # extract the sweeping parameters explicitly for labelling purposes
+    for executable, base_cfg in cfg.items():
+        sweep = base_cfg.get("sweep", {})
+        if sweep:
+            sweep_params = list(sweep.keys())
+
+
     for executable, RN, config_dict in iter_execution_units(global_vars['flow_priority'], jobs, runs):
         logging.info(f"{executable} initiated for R{RN}...")
         config_dict["run_number"] = RN
+        config_dict['sweep_params'] = sweep_params
         print_cfg(config_dict)
         select_execution_type(executable, config_dict, global_vars)
 
