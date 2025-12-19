@@ -10,6 +10,17 @@ from omegaconf.errors import ConfigKeyError
 
 from core.immutables import processing_style
 from core.io         import prepend_all, quote_strings
+
+
+def write_jobs(config_names : List,
+               global_vars  : DictConfig) -> None:
+    '''
+    Writes the job files to the correct location
+    '''
+
+
+
+
 def extract_globals(cfg : DictConfig) -> Dict:
     global_vars = {}
     if 'global' in cfg:
@@ -151,7 +162,7 @@ def extract_output_names(global_vars : Dict,
 
 
 def generate_folder_structure(global_vars : Dict,
-                              cfg : DictConfig) -> tuple[Path, Path]:
+                              cfg : DictConfig) -> tuple[Path, Path, Path]:
     '''
     generate folder structure based on global_vars and cfg
     '''
@@ -197,4 +208,4 @@ def generate_folder_structure(global_vars : Dict,
         case _:
             print('something else (fuck up)')
 
-    return (specific_config_path, specific_data_path)
+    return (specific_config_path, specific_data_path, specific_jobs_path)
