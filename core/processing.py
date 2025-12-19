@@ -3,7 +3,7 @@ import sys
 import re
 import logging
 
-from typing     import Dict
+from typing     import Dict, List
 
 from pathlib    import Path
 
@@ -20,6 +20,23 @@ PROD_DIR = str(os.environ['PROD_DIR'])
 sys.path.append(os.path.expanduser(PROD_DIR))
 
 
+def run_city_jobs(config_path: str,
+             global_vars  : Dict,
+                  cfg     : DictConfig) -> None:
+    '''
+    set up job runners:
+    - configs already made
+    - slurm files need to be generated
+    - then ran
+    '''
+    match global_vars['processing_style']:
+        case 'LDC':
+            for i in range(global_vars['LDCs']):
+                full_path = os.path,join(config_path, f'ldc{i+1}')
+                configs = sorted(config_path.glob("*.conf"))
+                slurm_args = city_template(global_vars, len(configs))
+
+
 def process_IC(global_vars : Dict,
                cfg         : DictConfig,
                name        : str) -> None:
@@ -28,7 +45,7 @@ def process_IC(global_vars : Dict,
     config_name = f"{name}-{global_vars['tag']}-{global_vars['timestamp']}"
 
     # generate_folder_structure
-    output_config_path, output_data_path = generate_folder_structure(global_vars, cfg)
+    output_config_path, output_data_path, output_jobs_path = generate_folder_structure(global_vars, cfg)
 
     # define the generalised config shape here
     config_path = Path(f"{PROD_DIR}/configs/IC_configs/{cfg['city']}.conf")
@@ -43,7 +60,6 @@ def process_IC(global_vars : Dict,
 
     write_configs(input_names, output_names, config_names, config, global_vars)
 
-    # run the jobs
 
 def process_binary(global_vars, config_dict, name):
     print('binary')
