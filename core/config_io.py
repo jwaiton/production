@@ -167,6 +167,12 @@ def generate_folder_structure(global_vars : Dict,
 
     Path(specific_data_path).mkdir(parents = True, exist_ok = True)
 
+    # create jobs location
+    specific_jobs_path = os.path.join(global_vars['job_path'], cfg['city'])
+    specific_jobs_path = os.path.join(specific_jobs_path, cfg['run_number'])
+
+    Path(specific_jobs_path).mkdir(parents = True, exist_ok = True)
+
     proc_style = processing_style[global_vars['processing_style']]
 
     logging.info(f'Generating configs with proc_style: {proc_style}')
@@ -178,9 +184,11 @@ def generate_folder_structure(global_vars : Dict,
             for i in range(global_vars['LDCs']):
                 Path(f'{specific_config_path}/ldc{i+1}').mkdir(parents = True, exist_ok = True)
                 Path(f'{specific_data_path}/ldc{i+1}').mkdir(parents = True, exist_ok = True)
+                Path(f'{specific_jobs_path}/ldc{i+1}').mkdir(parents = True, exist_ok = True)
+
                 logging.info(f'Generated config location at {specific_config_path}/ldc{i+1}')
-
-
+                logging.info(f'Generated data location at {specific_data_path}/ldc{i+1}')
+                logging.info(f'Generated jobs location at {specific_jobs_path}/ldc{i+1}')
 
         case "FOLDER":
             print('folder')

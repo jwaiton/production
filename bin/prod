@@ -146,6 +146,12 @@ def runner(config_path : str) -> None:
     Path(full_data_path).mkdir(parents = True, exist_ok = True)
     global_vars['data_path'] = full_data_path
 
+    full_jobs_path    = os.path.join(full_storage_path, 'jobs')
+    Path(full_jobs_path).mkdir(parents = True, exist_ok = True)
+    global_vars['job_path'] = full_jobs_path
+
+
+
     # generate and print tag
     generate_tag(global_vars, cfg)
     print_cfg(global_vars)
