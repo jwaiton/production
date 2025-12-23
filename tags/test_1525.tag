@@ -2,28 +2,52 @@
 tag               :  test_1525
 verbose           :  1
 processing_style  :  LDC
-runs_of_interest  :  ['15589', '15590']
-global_path       :  /home/e78368jw/Documents/NEXT_CODE/production/test_data
-config_location   :  configs
-timestamp         :  251215_1704
-config_path       :  /home/e78368jw/Documents/NEXT_CODE/production/test_data/configs
+LDCs              :  7
+RUNS              :  ['00000', '00001']
+flow_priority     :  JOB
+global_path       :  /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/
+max_num_jobs      :  7
+env_script        :  home/e78368jw/Documents/NEXT_CODE/production/templates/env_templates/dipc_helena.sh
+timestamp         :  251223_1512
+config_path       :  /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/configs
+data_path         :  /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/data
+job_path          :  /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/jobs
+===================
     ===================
     IC-beersheba  :
         ===================
-        city        :  beersheba
-        in_path     :  None
-        e_cut       :  [0.1, 0.2, 0.3]
-        n_iter      :  [10, 20, 30]
-        inner_dict  :
+        city       :  beersheba
+        pre_path   :  /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/
+        post_path  :  sophronia/
+        fixed      :
             ===================
-            key  :  value
-            abc  :  def
+            compression  :  'ZLIB4'
+            e_cut        :  0.1
+            n_iter       :  10
+            threshold    :  2 * pes
+            same_peak    :  True
+            q_cut        :  50
+            ===================
+        ===================
+
+
+    move_files    :
+        ===================
+        IC      :  True
+        input   :  beersheba
+        output  :  isaura
+        ===================
 
 
     IC-isaura     :
         ===================
-        city        :  isaura
-        in_path     :  beersheba.h5
-        voxel_size  :  [15, 15, 15]
+        city     :  isaura
+        in_path  :  beersheba.h5
+        fixed    :
+            ===================
+            voxel_size  :  [15, 15, 15]
+            ===================
+        ===================
 
 
+    ===================
