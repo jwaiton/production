@@ -8,14 +8,8 @@
 #SBATCH --mail-type=ALL
 
 # -------- Runtime parameters (from sbatch) --------
-PARTITION=${PARTITION:?}
-JOB_NAME=${JOB_NAME:?}
-TIME=${TIME:?}
-CPUS=${CPUS:?}
-MEM=${MEM:?}
 CONFIG_PATH=${CONFIG_PATH:?}
 CITY=${CITY:?}
-TAG=${TAG:?}
 
 # -------- Apply SLURM settings dynamically --------
 #SBATCH --partition=${PARTITION}
