@@ -241,8 +241,7 @@ def slurm_city_arguments(global_vars : Dict,
         f"--cpus-per-task={cpus_per_task}",
         f"--mem={mem}",
         f"--array=0-{conf_length - 1}",
-        f"CONFIG_PATH={conf_path}",
-        f"CITY={city}",
+        f"CONFIG_PATH={conf_path},CITY={city},INIT_ENV={global_vars.get('env_script', 'broken')}",
         f"{prod_dir}/templates/job_templates/run_city.slurm",
     ]
 

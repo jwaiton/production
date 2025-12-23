@@ -151,7 +151,6 @@ def runner(config_path : str) -> None:
     global_vars['job_path'] = full_jobs_path
 
 
-
     # generate and print tag
     generate_tag(global_vars, cfg)
     print_cfg(global_vars)
