@@ -225,15 +225,15 @@ def slurm_city_arguments(global_vars : Dict,
     # collect all defaults
     job_name      = f"{global_vars.get('tag', 'tag')}-{cfg.get('city', 'city')}-LDC{ldc}"
     time          = cfg.get('time', '24:00:00')
-    cpus_per_task = cfg.get('cpus-per-task', 36)
-    mem           = cfg.get('mem', '32G')
+    cpus_per_task = cfg.get('cpus-per-task', 2)
+    mem           = cfg.get('mem', '2G')
     city          = cfg.get('city', 'city')
 
     slurm_args = [
         "sbatch",
         "--partition=general",
         f"--job-name={job_name}",
-        f"--time={time}"
+        f"--time={time}",
         "--nodes=1",
         "--ntasks=1",
         f"--output={job_path}/{job_name}.log",
@@ -241,7 +241,7 @@ def slurm_city_arguments(global_vars : Dict,
         f"--cpus-per-task={cpus_per_task}",
         f"--mem={mem}",
         f"--array=0-{conf_length - 1}",
-        f"CONFIG_PATH={conf_path},CITY={city},INIT_ENV={global_vars.get('env_script', 'broken')}",
+        f"--export=CONFIG_PATH={conf_path},CITY={city},INIT_ENV={global_vars.get('env_script', 'broken')}",
         f"{prod_dir}/templates/job_templates/run_city.slurm",
     ]
 
