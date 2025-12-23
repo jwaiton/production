@@ -209,3 +209,41 @@ def generate_folder_structure(global_vars : Dict,
             print('something else (fuck up)')
 
     return (specific_config_path, specific_data_path, specific_jobs_path)
+
+
+def slurm_city_arguments(global_vars : Dict,
+                         cfg : DictConfig,
+                         conf_length : int,
+                         conf_path   : str,
+                         job_path    : str,
+                         ldc         : int,
+                         prod_dir    : str) -> List:
+    '''
+    returns all required arguments for the slurm city configuration
+    '''
+
+    # collect all defaults
+    job_name      = f"{global_vars.get('tag', 'tag')}-{cfg.get('city', 'city')}-LDC{ldc}"
+    time          = cfg.get('time', '24:00:00')
+    cpus_per_task = cfg.get('cpus-per-task', 36)
+    mem           = cfg.get('mem', '32G')
+    city          = cfg.get('city', 'city')
+
+    slurm_args = [
+        "sbatch",
+        "--partition=general",
+        f"--job-name={job_name}",
+        f"--time={time}"
+        "--nodes=1",
+        "--ntasks=1",
+        f"--output={job_path}/{job_name}.log",
+        f"--error={job_path}/{job_name}.err",
+        f"--cpus-per-task={cpus_per_task}",
+        f"--mem={mem}",
+        f"--array=0-{conf_length - 1}",
+        f"CONFIG_PATH={conf_path}",
+        f"CITY={city}",
+        f"{prod_dir}/templates/job_templates/run_city.slurm",
+    ]
+
+    return slurm_args

@@ -1,7 +1,9 @@
 import os
 import sys
 import re
+import glob
 import logging
+import subprocess
 
 from typing     import Dict, List
 
@@ -11,7 +13,7 @@ from omegaconf  import DictConfig
 
 from core.io        import print_cfg
 #from core.config_io import generate_configs
-from core.config_io import alter_config, generate_folder_structure, collect_input_names, extract_output_names, write_configs
+from core.config_io import alter_config, generate_folder_structure, collect_input_names, extract_output_names, write_configs, slurm_city_arguments
 
 from core.immutables import processing_style
 
@@ -21,7 +23,8 @@ sys.path.append(os.path.expanduser(PROD_DIR))
 
 
 def run_city_jobs(config_path: str,
-             global_vars  : Dict,
+                  job_path     : str,
+                  global_vars  : Dict,
                   cfg     : DictConfig) -> None:
     '''
     set up job runners:
@@ -32,9 +35,12 @@ def run_city_jobs(config_path: str,
     match global_vars['processing_style']:
         case 'LDC':
             for i in range(global_vars['LDCs']):
-                full_path = os.path,join(config_path, f'ldc{i+1}')
-                configs = sorted(config_path.glob("*.conf"))
-                slurm_args = city_template(global_vars, len(configs))
+                full_path = os.path.join(config_path, f'ldc{i+1}')
+                configs = sorted(Path(full_path).glob("*.conf"))
+                slurm_args = slurm_city_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR)
+                print("Submitting:", " ".join(slurm_args))
+                subprocess.run(slurm_args, check=True)
+
 
 
 def process_IC(global_vars : Dict,
@@ -60,6 +66,7 @@ def process_IC(global_vars : Dict,
 
     write_configs(input_names, output_names, config_names, config, global_vars)
 
+    run_city_jobs(output_config_path, output_jobs_path, global_vars, cfg)
 
 def process_binary(global_vars, config_dict, name):
     print('binary')
