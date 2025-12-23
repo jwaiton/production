@@ -34,7 +34,8 @@ def extract_globals(cfg : DictConfig) -> Dict:
     return global_vars
 
 
-def alter_config(config_text : str, alterations : DictConfig) -> str:
+def alter_config(config_text : str,
+                 alterations : DictConfig) -> str:
     '''
     take a python config from IC and alter it to match requirements
     '''
