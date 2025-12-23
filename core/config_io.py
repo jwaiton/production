@@ -45,12 +45,11 @@ def alter_config(config_text : str, alterations : DictConfig) -> str:
         else:
             try:
                 config_text = re.sub(rf"^\s*{key}\s*=\s*.*$",
-                                     rf"{key} = {value},",
+                                     rf"{key} = {value}",
                                      config_text,
                                      flags = re.MULTILINE)
             except Exception as e:
                 logging.error(f"Couldn't alter config for key value pair: {key}, {value}\n {e}")
-
     return config_text
 
 
