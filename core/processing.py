@@ -48,7 +48,7 @@ def run_city_jobs(config_path: str,
 
 
 def get_running_jobs(system : str) -> int:
-    if system is 'SLURM':
+    if system == 'SLURM':
         try:
             result = subprocess.run(["squeue", "-u", os.getenv("USER")], capture_output=True, text=True, check=True)
             lines = result.stdout.strip().split("\n")
