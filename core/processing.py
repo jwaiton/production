@@ -3,6 +3,7 @@ import sys
 import re
 import glob
 import logging
+import time
 import subprocess
 
 from typing     import Dict, List
@@ -38,9 +39,25 @@ def run_city_jobs(config_path: str,
                 full_path = os.path.join(config_path, f'ldc{i+1}')
                 configs = sorted(Path(full_path).glob("*.conf"))
                 slurm_args = slurm_city_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR)
+                # wait for jobs to be finished
+                while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
+                    print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                    time.sleep(60)
                 print("Submitting:", " ".join(slurm_args))
                 subprocess.run(slurm_args, check=True)
 
+
+def get_running_jobs(system : str) -> int:
+    if system is 'SLURM':
+        try:
+            result = subprocess.run(["squeue", "-u", os.getenv("USER")], capture_output=True, text=True, check=True)
+            lines = result.stdout.strip().split("\n")
+            running_jobs = len(lines) - 1  # Subtract header line
+            print(f"Currently running jobs: {running_jobs}")
+            return running_jobs
+        except subprocess.CalledProcessError as e:
+            print(f"Error retrieving running jobs: {e.stderr}")
+            return 0
 
 
 def process_IC(global_vars : Dict,

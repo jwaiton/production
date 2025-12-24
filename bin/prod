@@ -6,6 +6,7 @@ import os
 import sys
 import logging
 import copy
+import time
 
 from pathlib import Path
 from itertools import product
@@ -174,6 +175,11 @@ def runner(config_path : str) -> None:
         
         if global_vars['initial_run']:
             global_vars['initial_run'] = False
+
+        # dont hop to the next section until all jobs are done
+        while (proc.get_running_jobs(global_vars['cluster_sys']) > 0):
+            print(f"Waiting for all jobs to finish in {executable}-{RN}...")
+            time.sleep(60)
     print(global_vars['work-chain'])
 if __name__ == '__main__':
     
