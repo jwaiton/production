@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+import logging
+import sys
+from pathlib import Path
+import os
+import shutil
+import json
+
+
+def resolve_data(tag : str, 
+                 run : str, 
+                 city: str, 
+                 old_path : str, 
+                 new_path : str) -> None:
+    '''
+    Moves data based on run, tag and city stamps
+
+    the structure should be:
+    input  = {old_path}/{tag}/data/{city}/{run}/*
+    output = {new_path}/{tag}/data/{city}/{run}/
+    '''
+    
+    # construct full filepath
+    folder_in  = Path(f"{old_path}/{tag}/data/{city}/{run}/")
+    folder_out = Path(f"{new_path}/{tag}/data/{city}/{run}/")
+    
+    # make the output
+    folder_out.mkdir(parents = True, exist_ok = True)
+
+    for item in folder_in.iterdir():
+        
+        target = folder_out/ item.name
+    
+        if target.exists():
+            logging.warning(f'{target} already exists, overwriting...')
+            if target.is_dir():
+                shutil.rmtree(target)
+            else:
+                target.unlink()
+
+        shutil.move(str(item), str(target))
+
+if __name__ == '__main__':
+
+    # load in all the gunk
+    payload = json.loads(sys.argv[1])
+
+    fixed = payload["fixed"]
+    tag = payload["tag"]
+    run_number = payload["run_number"]
+
+    resolve_data(**fixed, tag=tag, run=run_number)
+
