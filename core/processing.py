@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import json
 import glob
 import logging
 import time
@@ -11,7 +12,7 @@ from typing     import Dict, List
 from pathlib    import Path
 
 from omegaconf  import DictConfig
-
+from omegaconf  import OmegaConf
 from core.io        import print_cfg
 #from core.config_io import generate_configs
 from core.config_io import alter_config, generate_folder_structure, collect_input_names, extract_output_names, write_configs, slurm_city_arguments
@@ -58,6 +59,9 @@ def get_running_jobs(system : str) -> int:
         except subprocess.CalledProcessError as e:
             print(f"Error retrieving running jobs: {e.stderr}")
             return 0
+        except FileNotFoundError as e:
+            logging.exception('')
+            return 0
 
 
 def process_IC(global_vars : Dict,
@@ -85,5 +89,38 @@ def process_IC(global_vars : Dict,
 
     run_city_jobs(output_config_path, output_jobs_path, global_vars, cfg)
 
-def process_binary(global_vars, config_dict, name):
-    print('binary')
+def process_binary(global_vars : Dict,
+                   cfg         : DictConfig,
+                   name        : str) -> None:
+    '''
+    Handles all other file sorts for processing
+    all binaries should start with the tag and run, then have all the config parameters
+    from within 'fixed' expanded out as keyword arguments
+    '''
+    # check if its run as a job or not
+    if cfg['job'] == False:
+        # run locally, find the binary in the bin folder
+        binary_path = Path(f"{PROD_DIR}/bin/{name}")
+        if not binary_path.exists():
+            logging.error(f"Binary '{name}' not found at {binary_path}")
+            raise FileNotFoundError(f"Binary '{name}' not found at {binary_path}")
+
+
+        payload = {
+        "fixed": OmegaConf.to_container(cfg['fixed'], resolve = True), # fixes arguments like ${foo}
+        "tag": global_vars['tag'],
+        "run_number": cfg['run_number'],
+        }
+
+        cmd = [
+            sys.executable,
+            str(binary_path),
+            json.dumps(payload),
+        ]
+
+        subprocess.run(cmd, check=True)
+        # include arguments --> everything from fixed
+
+    else:
+        # run as a job system
+        print('executing normal binaries as jobs not currently implemented')
