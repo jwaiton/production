@@ -1,0 +1,26 @@
+INFO     | 2026-01-01 13:29:08,190 | Job loaded, timestamp 260101_1329
+INFO     | 2026-01-01 13:29:08,190 | Beginning execution...
+INFO     | 2026-01-01 13:29:08,191 | IC-beersheba initiated for R00000...
+INFO     | 2026-01-01 13:29:08,191 | Generating configs with proc_style: processing_style.LDC
+INFO     | 2026-01-01 13:29:08,191 | Generated config location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/configs/beersheba/00000/ldc1
+INFO     | 2026-01-01 13:29:08,191 | Generated data location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/data/beersheba/00000/ldc1
+INFO     | 2026-01-01 13:29:08,191 | Generated jobs location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/jobs/beersheba/00000/ldc1
+INFO     | 2026-01-01 13:29:08,191 | Generated config location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/configs/beersheba/00000/ldc2
+INFO     | 2026-01-01 13:29:08,191 | Generated data location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/data/beersheba/00000/ldc2
+INFO     | 2026-01-01 13:29:08,191 | Generated jobs location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/jobs/beersheba/00000/ldc2
+INFO     | 2026-01-01 13:29:08,191 | Generated config location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/configs/beersheba/00000/ldc3
+INFO     | 2026-01-01 13:29:08,191 | Generated data location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/data/beersheba/00000/ldc3
+INFO     | 2026-01-01 13:29:08,191 | Generated jobs location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/jobs/beersheba/00000/ldc3
+INFO     | 2026-01-01 13:29:08,191 | Generated config location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/configs/beersheba/00000/ldc4
+INFO     | 2026-01-01 13:29:08,191 | Generated data location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/data/beersheba/00000/ldc4
+INFO     | 2026-01-01 13:29:08,191 | Generated jobs location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/jobs/beersheba/00000/ldc4
+INFO     | 2026-01-01 13:29:08,191 | Generated config location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/configs/beersheba/00000/ldc5
+INFO     | 2026-01-01 13:29:08,191 | Generated data location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/data/beersheba/00000/ldc5
+INFO     | 2026-01-01 13:29:08,191 | Generated jobs location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/jobs/beersheba/00000/ldc5
+INFO     | 2026-01-01 13:29:08,191 | Generated config location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/configs/beersheba/00000/ldc6
+INFO     | 2026-01-01 13:29:08,191 | Generated data location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/data/beersheba/00000/ldc6
+INFO     | 2026-01-01 13:29:08,191 | Generated jobs location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/jobs/beersheba/00000/ldc6
+INFO     | 2026-01-01 13:29:08,191 | Generated config location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/configs/beersheba/00000/ldc7
+INFO     | 2026-01-01 13:29:08,191 | Generated data location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/data/beersheba/00000/ldc7
+INFO     | 2026-01-01 13:29:08,191 | Generated jobs location at /home/e78368jw/Documents/NEXT_CODE/production/test_data/example_data/test_1525/jobs/beersheba/00000/ldc7
+INFO     | 2026-01-01 13:29:08,191 | Read/alter config from /home/e78368jw/Documents/NEXT_CODE/production/configs/IC_configs/beersheba.conf
