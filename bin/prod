@@ -133,6 +133,8 @@ def runner(config_path : str) -> None:
     now = datetime.now()
     global_vars['timestamp'] = now.strftime('%y%m%d_%H%M')
 
+    # set up logging with tag
+    setup_logging(log_name = f"PROD_{now.strftime('%Y%m%d_%H%M%S')}_t-{global_vars['tag']}")
 
     logging.info(f"Job loaded, timestamp {global_vars['timestamp']}")
     
@@ -183,6 +185,5 @@ def runner(config_path : str) -> None:
     print(global_vars['work-chain'])
 if __name__ == '__main__':
     
-    setup_logging()
     config_path = sys.argv[1]
     runner(config_path)
