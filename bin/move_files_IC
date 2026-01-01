@@ -19,7 +19,7 @@ def resolve_data(tag : str,
     input  = {old_path}/{tag}/data/{city}/{run}/*
     output = {new_path}/{tag}/data/{city}/{run}/
     '''
-    
+    logging.info(f'Moving files from: {old_path} to {new_path}') 
     # construct full filepath
     folder_in  = Path(f"{old_path}/{tag}/data/{city}/{run}/")
     folder_out = Path(f"{new_path}/{tag}/data/{city}/{run}/")
@@ -37,7 +37,7 @@ def resolve_data(tag : str,
                 shutil.rmtree(target)
             else:
                 target.unlink()
-
+        
         shutil.move(str(item), str(target))
 
 if __name__ == '__main__':
