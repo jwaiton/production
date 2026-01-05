@@ -48,6 +48,27 @@ def run_city_jobs(config_path: str,
                 subprocess.run(slurm_args, check=True)
 
 
+def run_binary_jobs(config_path : str,
+                    job_path    : str,
+                    global_vars : Dict,
+                    cfg         : DictConfig) -> None:
+    '''
+    set up job runners
+    '''
+    match global_vars['processing_style']:
+        case 'LDC':
+            for i in range(global_vars['LDCs']):
+                full_path = os.path.join(config_path, f'ldc{i+1}')
+                configs = sorted(Path(full_path).glob("*.conf"))
+                slurm_args = slurm_binary_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR)
+                # wait for jobs to be finished
+                while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
+                    print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                    time.sleep(60)
+                print("Submitting:", " ".join(slurm_args))
+                subprocess.run(slurm_args, check=True)
+
+
 def get_running_jobs(system : str) -> int:
     if system == 'SLURM':
         try:
@@ -120,7 +141,24 @@ def process_binary(global_vars : Dict,
 
         subprocess.run(cmd, check=True)
         # include arguments --> everything from fixed
-
     else:
-        # run as a job system
-        print('executing normal binaries as jobs not currently implemented')
+        # create directory for storing configs
+        config_name = f"{name}-{global_vars['tag']}-{global_vars['timestamp']}"
+
+        # generate_folder_structure
+        output_config_path, output_data_path, output_jobs_path = generate_folder_structure(global_vars, cfg, name)
+
+        # read in config and alter it here
+        config_path = Path(f"{PROD_DIR}/configs/bin/configs{name}.conf")
+        logging.info(f'Read/alter config from {config_path}')
+        config = config_path.read_text()
+        # intially alter to match fixed components
+        config = alter_config(config, cfg)
+
+        # collect input file names here
+        input_names = collect_input_names(global_vars, cfg)
+        output_names, config_names = extract_output_names(global_vars, cfg, input_names, name)
+
+        write_configs(input_names, output_names, config_names, config, global_vars)
+
+        run_binary_jobs(output_config_path, output_jobs_path, global_vars, cfg)

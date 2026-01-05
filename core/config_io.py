@@ -3,7 +3,7 @@ import logging
 import re
 from pathlib import Path
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from omegaconf import DictConfig
 from omegaconf.errors import ConfigKeyError
@@ -122,7 +122,8 @@ def collect_input_names(global_vars : Dict,
 
 def extract_output_names(global_vars : Dict,
                          cfg         : DictConfig,
-                         input_names : List) -> List:
+                         input_names : List,
+                         name        : Optional[str] = None) -> List:
     '''
     provided with an input file, create the corresponding output file
     this assumes the structure of:
@@ -132,8 +133,11 @@ def extract_output_names(global_vars : Dict,
     breaks otherwise
     '''
 
-    data_path = f"{global_vars['global_path']}{global_vars['tag']}/data/{cfg['city']}/{cfg['run_number']}/"
-    conf_path = f"{global_vars['global_path']}{global_vars['tag']}/configs/{cfg['city']}/{cfg['run_number']}/"
+    if name is None:
+        name = cfg['city']
+
+    data_path = f"{global_vars['global_path']}{global_vars['tag']}/data/{name}/{cfg['run_number']}/"
+    conf_path = f"{global_vars['global_path']}{global_vars['tag']}/configs/{name}/{cfg['run_number']}/"
 
     output_files = []
     config_files = []
@@ -145,8 +149,8 @@ def extract_output_names(global_vars : Dict,
                 # generate them based on the number
                 numbers    = [f.split('_')[2] for f in file_names]
 
-                output_files.append([f"ldc{i+1}/{cfg['city']}_{cfg['run_number']}_{n}_ldc{i+1}_{global_vars['tag']}.h5" for n in numbers])
-                config_files.append([f"ldc{i+1}/{cfg['city']}_{cfg['run_number']}_{n}_ldc{i+1}_{global_vars['tag']}.conf" for n in numbers])
+                output_files.append([f"ldc{i+1}/{name}_{cfg['run_number']}_{n}_ldc{i+1}_{global_vars['tag']}.h5" for n in numbers])
+                config_files.append([f"ldc{i+1}/{name}_{cfg['run_number']}_{n}_ldc{i+1}_{global_vars['tag']}.conf" for n in numbers])
         case 'FOLDER':
             print('folders not been set up yet')
         case 'FILE':
@@ -162,24 +166,30 @@ def extract_output_names(global_vars : Dict,
 
 
 def generate_folder_structure(global_vars : Dict,
-                              cfg : DictConfig) -> tuple[Path, Path, Path]:
+                              cfg : DictConfig,
+                              name : Optional[str] = None) -> tuple[Path, Path, Path]:
     '''
     generate folder structure based on global_vars and cfg
+    name passed through for binaries to allow for config names independent of city
     '''
+
+    if name is None:
+        name = cfg['city']
+
     # create config location
-    specific_config_path = os.path.join(global_vars['config_path'], cfg['city'])
+    specific_config_path = os.path.join(global_vars['config_path'], name)
     specific_config_path = os.path.join(specific_config_path, cfg['run_number'])
 
     Path(specific_config_path).mkdir(parents = True, exist_ok = True)
 
     # create data location
-    specific_data_path = os.path.join(global_vars['data_path'], cfg['city'])
+    specific_data_path = os.path.join(global_vars['data_path'], name)
     specific_data_path = os.path.join(specific_data_path, cfg['run_number'])
 
     Path(specific_data_path).mkdir(parents = True, exist_ok = True)
 
     # create jobs location
-    specific_jobs_path = os.path.join(global_vars['job_path'], cfg['city'])
+    specific_jobs_path = os.path.join(global_vars['job_path'], name)
     specific_jobs_path = os.path.join(specific_jobs_path, cfg['run_number'])
 
     Path(specific_jobs_path).mkdir(parents = True, exist_ok = True)
@@ -220,6 +230,7 @@ def slurm_city_arguments(global_vars : Dict,
                          prod_dir    : str) -> List:
     '''
     returns all required arguments for the slurm city configuration
+    assuming an LDC on LDC basis
     '''
 
     # collect all defaults
@@ -243,6 +254,44 @@ def slurm_city_arguments(global_vars : Dict,
         f"--array=0-{conf_length - 1}",
         f"--export=CONFIG_PATH={conf_path},CITY={city},INIT_ENV={global_vars.get('env_script', 'broken')}",
         f"{prod_dir}/templates/job_templates/run_city.slurm",
+    ]
+
+    return slurm_args
+
+
+def slurm_binary_arguments(global_vars : Dict,
+                         cfg : DictConfig,
+                         conf_length : int,
+                         conf_path   : str,
+                         job_path    : str,
+                         ldc         : int,
+                         prod_dir    : str) -> List:
+    '''
+    returns all required arguments for the slurm binary configuration
+    assuming an LDC on LDC basis
+    '''
+
+    # collect all defaults
+    job_name      = f"{global_vars.get('tag', 'tag')}-{cfg.get('name', 'name')}-LDC{ldc}"
+    time          = cfg.get('time', '24:00:00')
+    cpus_per_task = cfg.get('cpus-per-task', 2)
+    mem           = cfg.get('mem', '2G')
+    binary        = f"{prod_dir}{cfg.get('name', 'name')}"
+
+    slurm_args = [
+        "sbatch",
+        "--partition=general",
+        f"--job-name={job_name}",
+        f"--time={time}",
+        "--nodes=1",
+        "--ntasks=1",
+        f"--output={job_path}/{job_name}.log",
+        f"--error={job_path}/{job_name}.err",
+        f"--cpus-per-task={cpus_per_task}",
+        f"--mem={mem}",
+        f"--array=0-{conf_length - 1}",
+        f"--export=CONFIG_PATH={conf_path},BINARY={binary},INIT_ENV={global_vars.get('env_script', 'broken')}",
+        f"{prod_dir}/templates/job_templates/run_binary.slurm",
     ]
 
     return slurm_args
