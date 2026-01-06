@@ -31,4 +31,4 @@ configs=(${CONFIG_PATH}/*.conf)
 cfg="${configs[$SLURM_ARRAY_TASK_ID]}"
 
 echo "[$SLURM_ARRAY_TASK_ID] Running $cfg"
-city "$BINARY" "$cfg"
+"$BINARY" "$cfg"
