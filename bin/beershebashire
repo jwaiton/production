@@ -176,7 +176,7 @@ def beershireba(*, files_in = '', file_out = '', run_number = 00000, rebin_d = [
     drop_sensors = drop_isolated(drop_dist, ['E'], nhits)
     # extract all files in the input directory
     if os.path.isdir(files_in):
-        files = [f for f in os.listdir(files_in) if f.endswith('.h5')]
+        files = [f'{files_in}{f}' for f in os.listdir(files_in) if f.endswith('.h5')]
     else:
         files = [files_in]
 
@@ -189,7 +189,7 @@ def beershireba(*, files_in = '', file_out = '', run_number = 00000, rebin_d = [
         output_name = f'run_{run_number}_{evt_num}_{LDC_num}_beershireba.h5'
 
 
-        dsts = read_data(f'{files_in}{f}', run_number, h5_pattern)
+        dsts = read_data(f'{f}', run_number, h5_pattern)
 
         file_data = []
 
