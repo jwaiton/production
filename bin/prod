@@ -126,7 +126,10 @@ def runner(config_path : str) -> None:
     
     # load config
     cfg = OmegaConf.load(config_path)
-
+    # this stupid section is done to force the resolution of interpolated variables
+    # while retaining the DictConfig type
+    cfg = OmegaConf.to_container(cfg, resolve = True)
+    cfg = OmegaConf.create(cfg)
     # extract globals
     global_vars = extract_globals(cfg)
     # create timestamp
