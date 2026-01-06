@@ -114,13 +114,13 @@ def read_data(input, run_number, h5_pattern):
     return dsts
 
 
-def save_data(dsts, rebin_df, file_out, save_file_name, run_number):
+def save_data(dsts, rebin_df, file_out, run_number):
     '''
     saves individual files
     '''
 
-    print(f'Saving data to {file_out}{save_file_name}')
-    with tb.open_file(f'{file_out}{save_file_name}', 'w') as h5out:
+    print(f'Saving data to {file_out}')
+    with tb.open_file(f'{file_out}', 'w') as h5out:
         df_writer(h5out, dsts['DST'],      'DST',     'Events')
         df_writer(h5out, rebin_df,         'DECO',    'Events')
         df_writer(h5out, dsts['filters'],  'Filters', 'nohits')
@@ -147,9 +147,9 @@ def beershireba(*, files_in = '', file_out = '', run_number = 00000, rebin_d = [
     if not os.path.isdir(files_in):
         if not os.path.isfile(files_in):
             raise FileNotFoundError(f'File or directory does not exist: {files_in}')
-    if not os.path.isfile(file_out):
-        print(f'{file_out} does not exist, creating it now...')
-        os.makedirs(file_out, exist_ok=True) # no need for the exist_ok check, but left in
+    if not os.path.exists(file_out):
+        print(f'{file_out} path does not exist, attempting to create it now...')
+        os.makedirs(os.path.dirname(file_out), exist_ok=True) # no need for the exist_ok check, but left in
 
     # save time in the loading: dictionary name,  h5 group,  h5 node
     h5_pattern = {'DST'      :  ['DST',     'Events'],
@@ -212,7 +212,7 @@ def beershireba(*, files_in = '', file_out = '', run_number = 00000, rebin_d = [
             new_df = pd.concat(file_data)
             # save
             print('saving...' )
-            save_data(dsts, new_df, file_out, output_name, run_number)
+            save_data(dsts, new_df, file_out, run_number)
         except Exception as e:
             print(f'beershebashire broke for file {f}:\n{e}')
 
