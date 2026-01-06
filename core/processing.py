@@ -51,7 +51,8 @@ def run_city_jobs(config_path: str,
 def run_binary_jobs(config_path : str,
                     job_path    : str,
                     global_vars : Dict,
-                    cfg         : DictConfig) -> None:
+                    cfg         : DictConfig,
+                    name        : str) -> None:
     '''
     set up job runners
     '''
@@ -60,7 +61,7 @@ def run_binary_jobs(config_path : str,
             for i in range(global_vars['LDCs']):
                 full_path = os.path.join(config_path, f'ldc{i+1}')
                 configs = sorted(Path(full_path).glob("*.conf"))
-                slurm_args = slurm_binary_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR)
+                slurm_args = slurm_binary_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR, name)
                 # wait for jobs to be finished
                 while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
                     print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
