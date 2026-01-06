@@ -145,8 +145,9 @@ def beershireba(*, files_in = '', file_out = '', run_number = 00000, rebin_d = [
     
     # ensure paths exist, if not either error out or make one
     if not os.path.isdir(files_in):
-        raise FileNotFoundError(f'Directory does not exist: {files_in}')
-    if not os.path.isdir(file_out):
+        if not os.path.isfile(files_in):
+            raise FileNotFoundError(f'File or directory does not exist: {files_in}')
+    if not os.path.isfile(file_out):
         print(f'{file_out} does not exist, creating it now...')
         os.makedirs(file_out, exist_ok=True) # no need for the exist_ok check, but left in
 
@@ -174,7 +175,11 @@ def beershireba(*, files_in = '', file_out = '', run_number = 00000, rebin_d = [
 
     drop_sensors = drop_isolated(drop_dist, ['E'], nhits)
     # extract all files in the input directory
-    files = [f for f in os.listdir(files_in) if f.endswith('.h5')]
+    if os.path.isdir(files_in):
+        files = [f for f in os.listdir(files_in) if f.endswith('.h5')]
+    else:
+        files = [files_in]
+
     for f in files:
 
         # names always have 4 digits in them in this land, lets extrapolate that
