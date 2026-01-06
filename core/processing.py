@@ -161,4 +161,4 @@ def process_binary(global_vars : Dict,
 
         write_configs(input_names, output_names, config_names, config, global_vars)
 
-        run_binary_jobs(output_config_path, output_jobs_path, global_vars, cfg)
+        run_binary_jobs(output_config_path, output_jobs_path, global_vars, cfg, name)

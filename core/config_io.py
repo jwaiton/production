@@ -265,18 +265,19 @@ def slurm_binary_arguments(global_vars : Dict,
                          conf_path   : str,
                          job_path    : str,
                          ldc         : int,
-                         prod_dir    : str) -> List:
+                         prod_dir    : str,
+                         name        : str) -> List:
     '''
     returns all required arguments for the slurm binary configuration
     assuming an LDC on LDC basis
     '''
 
     # collect all defaults
-    job_name      = f"{global_vars.get('tag', 'tag')}-{cfg.get('name', 'name')}-LDC{ldc}"
+    job_name      = f"{global_vars.get('tag', 'tag')}-{name}-LDC{ldc}"
     time          = cfg.get('time', '24:00:00')
     cpus_per_task = cfg.get('cpus-per-task', 2)
     mem           = cfg.get('mem', '2G')
-    binary        = f"{prod_dir}{cfg.get('name', 'name')}"
+    binary        = f"{prod_dir}/{name}"
 
     slurm_args = [
         "sbatch",
