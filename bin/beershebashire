@@ -138,7 +138,10 @@ def save_data(dsts, rebin_df, file_out, save_file_name, run_number):
             df_writer(h5out, dsts['MC_evtmp'],         'MC',  'eventMap')
 
 
-def beershireba(files_in = '', file_out = '', run_number = 00000, rebin_d = [5,5,4], drop_dist = [16, 16, 4], nhits = 3):
+def beershireba(*, files_in = '', file_out = '', run_number = 00000, rebin_d = [5,5,4], drop_dist = [16, 16, 4], nhits = 3, **extra):
+
+    if extra:
+        raise TypeError(f"Unexpected keys provided: {list(extra)}")
     
     # ensure paths exist, if not either error out or make one
     if not os.path.isdir(files_in):
