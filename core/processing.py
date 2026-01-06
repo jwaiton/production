@@ -149,7 +149,7 @@ def process_binary(global_vars : Dict,
         output_config_path, output_data_path, output_jobs_path = generate_folder_structure(global_vars, cfg, name)
 
         # read in config and alter it here
-        config_path = Path(f"{PROD_DIR}/configs/bin/configs{name}.conf")
+        config_path = Path(f"{PROD_DIR}/configs/bin_configs/{name}.conf")
         logging.info(f'Read/alter config from {config_path}')
         config = config_path.read_text()
         # intially alter to match fixed components
