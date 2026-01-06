@@ -15,7 +15,7 @@ from omegaconf  import DictConfig
 from omegaconf  import OmegaConf
 from core.io        import print_cfg
 #from core.config_io import generate_configs
-from core.config_io import alter_config, generate_folder_structure, collect_input_names, extract_output_names, write_configs, slurm_city_arguments
+from core.config_io import alter_config, generate_folder_structure, collect_input_names, extract_output_names, write_configs, slurm_city_arguments, slurm_binary_arguments
 
 from core.immutables import processing_style
 
