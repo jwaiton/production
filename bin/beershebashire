@@ -280,4 +280,4 @@ if __name__ == '__main__':
 
     args = load_config(str(path)) # pass through config
     unpacked_args = {k: v for k, v in vars(args).items() if not k.startswith("__")}
-    beershireba(unpacked_args)
+    beershireba(**unpacked_args)
