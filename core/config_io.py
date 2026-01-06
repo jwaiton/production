@@ -277,7 +277,7 @@ def slurm_binary_arguments(global_vars : Dict,
     time          = cfg.get('time', '24:00:00')
     cpus_per_task = cfg.get('cpus-per-task', 2)
     mem           = cfg.get('mem', '2G')
-    binary        = f"{prod_dir}/{name}"
+    binary        = f"{prod_dir}/bin/{name}"
 
     slurm_args = [
         "sbatch",
