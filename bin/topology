@@ -25,6 +25,9 @@ from concurrent.futures import ProcessPoolExecutor
 import sys,os,os.path
 from pathlib import Path
 
+import importlib.util
+from importlib.machinery import SourceFileLoader
+
 from invisible_cities.io.dst_io           import load_dst, load_dsts, df_writer
 from invisible_cities.io.hits_io          import hits_writer
 from invisible_cities.core                import tbl_functions   as tbl
