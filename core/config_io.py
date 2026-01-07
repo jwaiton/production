@@ -124,7 +124,7 @@ def collect_input_folder(global_vars : Dict,
 
     path = f"{cfg['pre_path']}{cfg['run_number']}/{cfg['post_path']}"
 
-    return [path]
+    return [f"'{path}'"] # done to ensure its passed through as a string properly
 
 
 def collect_input_names(global_vars : Dict,
