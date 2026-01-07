@@ -71,7 +71,7 @@ def run_binary_jobs(config_path : str,
         proc_style = global_vars['processing_style']
 
 
-    match global_vars['processing_style']:
+    match proc_style:
         case 'LDC':
 
             for i in range(global_vars['LDCs']):
