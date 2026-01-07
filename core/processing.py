@@ -56,6 +56,21 @@ def run_binary_jobs(config_path : str,
     '''
     set up job runners
     '''
+    # add a bit in here for funnel that means you select file, do everything once with
+    # the list provided
+    # overwrite the processing style if needed
+    if 'style' in cfg:
+        match cfg['style']:
+            case 'match':
+                proc_style = global_vars['processing_style']
+            case 'funnel':
+                proc_style = 'FILE'
+            case _:
+                raise SyntaxError(f"processing style {cfg['style']} not implemented")
+    else:
+        proc_style = global_vars['processing_style']
+
+
     match global_vars['processing_style']:
         case 'LDC':
 
