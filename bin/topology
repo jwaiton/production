@@ -462,9 +462,9 @@ def cut_and_save(*
             ldc_errors += 1
     try:
         hdst = pd.concat(hdst)
-    except:
-        print('concat broke, who knows man')
-    
+    except Exception as er:
+        print(f'Concatenation broke due to error:\n{er}') 
+
     print('=' * 20)
     print(f'Number of failed files: {errors}')
     cut_hdst, efficiencies = apply_cuts(hdst, 
