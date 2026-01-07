@@ -15,7 +15,7 @@ from omegaconf  import DictConfig
 from omegaconf  import OmegaConf
 from core.io        import print_cfg
 #from core.config_io import generate_configs
-from core.config_io import alter_config, generate_folder_structure, collect_input_names, extract_output_names, write_configs, slurm_city_arguments, slurm_binary_arguments
+from core.config_io import alter_config, generate_folder_structure, collect_input_names, extract_output_names, write_configs, slurm_city_arguments, slurm_binary_arguments, collect_input_folder
 
 from core.immutables import processing_style
 
@@ -58,6 +58,7 @@ def run_binary_jobs(config_path : str,
     '''
     match global_vars['processing_style']:
         case 'LDC':
+
             for i in range(global_vars['LDCs']):
                 full_path = os.path.join(config_path, f'ldc{i+1}')
                 configs = sorted(Path(full_path).glob("*.conf"))
@@ -68,6 +69,16 @@ def run_binary_jobs(config_path : str,
                     time.sleep(60)
                 print("Submitting:", " ".join(slurm_args))
                 subprocess.run(slurm_args, check=True)
+        case 'FILE':
+
+            configs = sorted(Path(config_path).glob("*.conf"))
+            slurm_args = slurm_binary_arguments(global_vars, cfg, len(configs), full_path, job_path, 0, PROD_DIR, name)
+            # wait for jobs to be finished
+            while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
+                print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                time.sleep(60)
+            print("Submitting:", " ".join(slurm_args))
+            subprocess.run(slurm_args, check=True)
 
 
 def get_running_jobs(system : str) -> int:
@@ -156,10 +167,22 @@ def process_binary(global_vars : Dict,
         # intially alter to match fixed components
         config = alter_config(config, cfg)
 
-        # collect input file names here
-        input_names = collect_input_names(global_vars, cfg)
-        output_names, config_names = extract_output_names(global_vars, cfg, input_names, name)
+        # here we decide on processing style again
+        match cfg['style']:
+            case 'match':
 
-        write_configs(input_names, output_names, config_names, config, global_vars)
+                # collect input file names here
+                input_names = collect_input_names(global_vars, cfg)
+                output_names, config_names = extract_output_names(global_vars, cfg, input_names, name)
 
-        run_binary_jobs(output_config_path, output_jobs_path, global_vars, cfg, name)
+                write_configs(input_names, output_names, config_names, config, cfg, global_vars)
+
+                run_binary_jobs(output_config_path, output_jobs_path, global_vars, cfg, name)
+            case 'funnel':
+                # collect input folder here, leave the script to extract each file
+                input_folder = collect_input_folder(global_vars, cfg)
+                output_names, config_names = extract_output_names(global_vars, cfg, input_folder, name)
+                write_configs(input_folder, output_names, config_names, config, cfg, global_vars)
+
+                run_binary_jobs(output_config_path, output_jobs_path, global_vars, cfg, name)
+

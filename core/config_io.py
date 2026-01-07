@@ -56,10 +56,26 @@ def alter_config(config_text : str,
 
 
 
-def write_configs(input_names : List, output_names : List, config_names : [List], config : DictConfig, global_vars : Dict) -> None:
+def write_configs(input_names : List, output_names : List, config_names : [List], config : str, cfg : DictConfig, global_vars : Dict) -> None:
     '''
     write out the config files
     '''
+
+    # add a bit in here for funnel that means you select file, do everything once with
+    # the list provided
+    # overwrite the processing style if needed
+    if 'style' in cfg:
+        match cfg['style']:
+            case 'match':
+                proc_style = global_vars['processing_style']
+            case 'funnel':
+                proc_style = 'FILE'
+            case _:
+                raise SyntaxError(f"processing style {cfg['style']} not implemented")
+    else:
+        proc_style = global_vars['processing_style']
+
+    # alter inputs and outputs
     match global_vars['processing_style']:
         case 'LDC':
             for i in range(global_vars['LDCs']):
@@ -74,7 +90,16 @@ def write_configs(input_names : List, output_names : List, config_names : [List]
         case 'FOLDER':
             print('folders not been set up yet')
         case 'FILE':
-            print('files not been set up yet')
+            # still should be passed through as lists
+            for i_names, o_names, c_names in zip(input_names, output_names, config_names):
+                conf_dict = {'file_out' : o_names, 'files_in' : i_names}
+                print('conf_dict')
+                print(conf_dict)
+                local_config = alter_config(config, conf_dict)
+                # write it to the file
+                with open(c_names, 'w') as f:
+                    f.write(local_config)
+
         case _:
             print('something else (fuck up)')
 
@@ -88,6 +113,18 @@ def write_configs(input_names : List, output_names : List, config_names : [List]
         print(local_config)
         exit()
     '''
+
+def collect_input_folder(global_vars : Dict,
+                         cfg         : DictConfig) -> List:
+    '''
+    using the provided information, ascertain input name of the folder
+    this is used in the 'funnel' case, multiple files compiling into one
+    output. See `topology` for an example of how this is implemented.
+    '''
+
+    path = f"{cfg['pre_path']}{cfg['run_number']}/{cfg['post_path']}"
+
+    return [path]
 
 
 def collect_input_names(global_vars : Dict,
@@ -133,6 +170,19 @@ def extract_output_names(global_vars : Dict,
     breaks otherwise
     '''
 
+    # overwrite the processing style if needed
+    if 'style' in cfg:
+        match cfg['style']:
+            case 'match':
+                proc_style = global_vars['processing_style']
+            case 'funnel':
+                proc_style = 'FILE'
+            case _:
+                raise SyntaxError(f"processing style {cfg['style']} not implemented")
+    else:
+        proc_style = global_vars['processing_style']
+
+    # assign name to city if not provided (provided in binary case)
     if name is None:
         name = cfg['city']
 
@@ -141,7 +191,7 @@ def extract_output_names(global_vars : Dict,
 
     output_files = []
     config_files = []
-    match global_vars['processing_style']:
+    match proc_style:
         case 'LDC':
             for i in range(global_vars['LDCs']):
                 LDC_files  = input_names[i]
@@ -154,7 +204,8 @@ def extract_output_names(global_vars : Dict,
         case 'FOLDER':
             print('folders not been set up yet')
         case 'FILE':
-            print('files not been set up yet')
+            output_files = [f"{name}_{cfg['run_number']}_{global_vars['tag']}.h5"]
+            config_files = [f"{name}_{cfg['run_number']}_{global_vars['tag']}.conf"]
         case _:
             print('something else (fuck up)')
 
