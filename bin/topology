@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import tables as tb
 from matplotlib import colors
+import traceback
 
 from typing          import Optional
 from typing          import Union
@@ -223,7 +224,12 @@ def cut_effic(df1, df2, verbose = False):
 
     length_1 = df1['event'].nunique()
     length_2 = df2['event'].nunique()
-    efficiency = ((length_1/length_2)*100)
+    try:
+        efficiency = ((length_1/length_2)*100)
+    except ZeroDivisionError as e:
+        print(f'ZeroDivision error found between {length1} and {length2}')
+        traceback.print_exc()
+        efficiency = -9999999
     print("Efficiency: {:.2f} %".format(efficiency))
 
     if (verbose == True):
