@@ -223,6 +223,17 @@ def generate_folder_structure(global_vars : Dict,
     generate folder structure based on global_vars and cfg
     name passed through for binaries to allow for config names independent of city
     '''
+    if 'style' in cfg:
+        match cfg['style']:
+            case 'match':
+                proc_style = global_vars['processing_style']
+            case 'funnel':
+                proc_style = 'FILE'
+            case _:
+                raise SyntaxError(f"processing style {cfg['style']} not implemented")
+    else:
+        proc_style = global_vars['processing_style']
+
 
     if name is None:
         name = cfg['city']
@@ -245,12 +256,11 @@ def generate_folder_structure(global_vars : Dict,
 
     Path(specific_jobs_path).mkdir(parents = True, exist_ok = True)
 
-    proc_style = processing_style[global_vars['processing_style']]
 
     logging.info(f'Generating configs with proc_style: {proc_style}')
 
 
-    match global_vars['processing_style']:
+    match proc_style:
         case "LDC":
             # generate folders
             for i in range(global_vars['LDCs']):
