@@ -40,7 +40,6 @@ from invisible_cities.evm.event_model     import HitCollection
 from tqdm import tqdm
 
 
-import functions.functions_HE as func
 
 ############################################################
 
