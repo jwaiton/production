@@ -76,7 +76,7 @@ def write_configs(input_names : List, output_names : List, config_names : [List]
         proc_style = global_vars['processing_style']
 
     # alter inputs and outputs
-    match global_vars['processing_style']:
+    match proc_style:
         case 'LDC':
             for i in range(global_vars['LDCs']):
                 for i_names, o_names, c_names in zip(input_names[i], output_names[i], config_names[i]):
