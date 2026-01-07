@@ -227,7 +227,7 @@ def cut_effic(df1, df2, verbose = False):
     try:
         efficiency = ((length_1/length_2)*100)
     except ZeroDivisionError as e:
-        print(f'ZeroDivision error found between {length1} and {length2}')
+        print(f'ZeroDivision error found between {length_1} and {length_2}')
         traceback.print_exc()
         efficiency = -9999999
     print("Efficiency: {:.2f} %".format(efficiency))
