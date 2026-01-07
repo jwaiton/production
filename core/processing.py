@@ -87,7 +87,7 @@ def run_binary_jobs(config_path : str,
         case 'FILE':
 
             configs = sorted(Path(config_path).glob("*.conf"))
-            slurm_args = slurm_binary_arguments(global_vars, cfg, len(configs), full_path, job_path, 0, PROD_DIR, name)
+            slurm_args = slurm_binary_arguments(global_vars, cfg, len(configs), config_path, job_path, 0, PROD_DIR, name)
             # wait for jobs to be finished
             while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
                 print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
