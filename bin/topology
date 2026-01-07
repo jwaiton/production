@@ -416,14 +416,16 @@ def load_data_fast(folder_path):
 
 
 def cut_and_save(*
-                , R       : int    =  12345
-                , TS      : int    =  110125
-                , z_lower : float  =  15.0
-                , z_upper : float  =  1700.0
-                , r_lim   : float  =  400.0
-                , e_lower : float  =  1.5
-                , e_upper : float  =  1.7
-                , city    : str    =  'None'
+                , files_in   : str      = ''
+                , file_out   : str    = ''
+                , run_number : str    = ''
+                , R          : int    =  12345
+                , TS         : int    =  110125
+                , z_lower    : float  =  15.0
+                , z_upper    : float  =  1700.0
+                , r_lim      : float  =  400.0
+                , e_lower    : float  =  1.5
+                , e_upper    : float  =  1.7
                 , **extra):
 
     '''
@@ -433,20 +435,15 @@ def cut_and_save(*
     if extra:
         raise TypeError(f"Unexpected keys provided {list(extra)}")
 
-    print(f'R-{R}, TS-{TS}')
-    root_path = '/scratch/halmazan/NEXT/'
+    # check input and output paths
+    if not Path(files_in).is_dir():
+        raise FileNotFoundError(f'Directory {files_in} does not exist.')
+    # create output path if non existent
+    Path(file_out).parent.mkdir(parents=True, exist_ok=True)
 
-    if city == 'isaura':
-        root_path_isaura = '/data/halmazan/NEXT/'
-    else:
-        root_path_isaura = root_path 
-        # get a directory to save to
-    folder_name = f'{root_path}PROCESSING/topology_cuts/data/{R}/{city}/{TS}/'
-    folder_s = Path(f'{folder_name}')
-    folder_s.mkdir(parents=True, exist_ok=True)
 
     # load in
-    n100_dir = f'{root_path_isaura}N100_LPR/{R}/{city}/{TS}/'
+    n100_dir = files_in
 
     hdst = []
     errors = 0
@@ -470,7 +467,7 @@ def cut_and_save(*
     
     print('=' * 20)
     print(f'Number of failed files: {errors}')
-    cut_hdst, efficiencies = func.apply_cuts(hdst, 
+    cut_hdst, efficiencies = apply_cuts(hdst, 
                                              lower_z = z_lower, 
                                              upper_z = z_upper, 
                                              r_lim   = r_lim, 
@@ -481,9 +478,9 @@ def cut_and_save(*
     print(f'Events before: {hdst.event.nunique()}')
     print(f'Events after: {cut_hdst.event.nunique()}')
     # SAVE THE DATAFRAME
-    cut_hdst.to_hdf(f'{folder_name}cut_hdst.h5', key = 'Tracking/Tracks')
-    efficiencies.to_hdf(f'{folder_name}cut_hdst.h5', key = 'Info/Efficiency')
-    print(f'Data saved to {folder_name}cut_hdst.h5')
+    cut_hdst.to_hdf(file_out, key = 'Tracking/Tracks')
+    efficiencies.to_hdf(file_out, key = 'Info/Efficiency')
+    print(f'Data saved to {file_out}')
 
 
 if __name__ == '__main__':
