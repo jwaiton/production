@@ -88,7 +88,7 @@ def run_binary_jobs(config_path : str,
                 while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
                     print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                     time.sleep(60)
-                 for slurm_args in slurm_batch:
+                for slurm_args in slurm_batch:
                     time.sleep(15) # add a buffer to let jobs load into the cluster
                     # wait for jobs to be finished
                     while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
@@ -104,7 +104,7 @@ def run_binary_jobs(config_path : str,
             while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
                 print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                 time.sleep(60)
-             for slurm_args in slurm_batch:
+            for slurm_args in slurm_batch:
                 time.sleep(15) # add a buffer to let jobs load into the cluster
                 # wait for jobs to be finished
                 while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
