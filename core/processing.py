@@ -39,13 +39,19 @@ def run_city_jobs(config_path: str,
             for i in range(global_vars['LDCs']):
                 full_path = os.path.join(config_path, f'ldc{i+1}')
                 configs = sorted(Path(full_path).glob("*.conf"))
-                slurm_args = slurm_city_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR)
+                slurm_batch = slurm_city_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR, 100)
                 # wait for jobs to be finished
                 while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
                     print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                     time.sleep(60)
-                print("Submitting:", " ".join(slurm_args))
-                subprocess.run(slurm_args, check=True)
+                for slurm_args in slurm_batch:
+                    time.sleep(15) # add a buffer to let jobs load into the cluster
+                    # wait for jobs to be finished
+                    while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
+                        print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                        time.sleep(60)
+                    print("Submitting:", " ".join(slurm_args))
+                    subprocess.run(slurm_args, check=True)
 
 
 def run_binary_jobs(config_path : str,
@@ -77,24 +83,35 @@ def run_binary_jobs(config_path : str,
             for i in range(global_vars['LDCs']):
                 full_path = os.path.join(config_path, f'ldc{i+1}')
                 configs = sorted(Path(full_path).glob("*.conf"))
-                slurm_args = slurm_binary_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR, name)
+                slurm_batch = slurm_binary_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR, name, 100)
+                # wait for jobs to be finished
+                while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
+                    print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                    time.sleep(60)
+                 for slurm_args in slurm_batch:
+                    time.sleep(15) # add a buffer to let jobs load into the cluster
+                    # wait for jobs to be finished
+                    while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
+                        print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                        time.sleep(60)
+                    print("Submitting:", " ".join(slurm_args))
+                    subprocess.run(slurm_args, check=True)
+        case 'FILE':
+
+            configs = sorted(Path(config_path).glob("*.conf"))
+            slurm_batch = slurm_binary_arguments(global_vars, cfg, len(configs), config_path, job_path, 0, PROD_DIR, name)
+            # wait for jobs to be finished
+            while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
+                print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                time.sleep(60)
+             for slurm_args in slurm_batch:
+                time.sleep(15) # add a buffer to let jobs load into the cluster
                 # wait for jobs to be finished
                 while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
                     print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                     time.sleep(60)
                 print("Submitting:", " ".join(slurm_args))
                 subprocess.run(slurm_args, check=True)
-        case 'FILE':
-
-            configs = sorted(Path(config_path).glob("*.conf"))
-            slurm_args = slurm_binary_arguments(global_vars, cfg, len(configs), config_path, job_path, 0, PROD_DIR, name)
-            # wait for jobs to be finished
-            while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
-                print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
-                time.sleep(60)
-            print("Submitting:", " ".join(slurm_args))
-            subprocess.run(slurm_args, check=True)
-
 
 def get_running_jobs(system : str) -> int:
     if system == 'SLURM':

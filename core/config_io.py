@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 from typing import Dict, List, Optional
-
+from math import ceil
 from omegaconf import DictConfig
 from omegaconf.errors import ConfigKeyError
 
@@ -288,7 +288,8 @@ def slurm_city_arguments(global_vars : Dict,
                          conf_path   : str,
                          job_path    : str,
                          ldc         : int,
-                         prod_dir    : str) -> List:
+                         prod_dir    : str,
+                         chunk_size  : int | None = None) -> List[List[str]]:
     '''
     returns all required arguments for the slurm city configuration
     assuming an LDC on LDC basis
@@ -301,23 +302,34 @@ def slurm_city_arguments(global_vars : Dict,
     mem           = cfg.get('mem', '2G')
     city          = cfg.get('city', 'city')
 
-    slurm_args = [
-        "sbatch",
-        "--partition=general",
-        f"--job-name={job_name}",
-        f"--time={time}",
-        "--nodes=1",
-        "--ntasks=1",
-        f"--output={job_path}/{job_name}.log",
-        f"--error={job_path}/{job_name}.err",
-        f"--cpus-per-task={cpus_per_task}",
-        f"--mem={mem}",
-        f"--array=0-{conf_length - 1}",
-        f"--export=CONFIG_PATH={conf_path},CITY={city},INIT_ENV={global_vars.get('env_script', 'broken')}",
-        f"{prod_dir}/templates/job_templates/run_city.slurm",
-    ]
+    if chunk_size is not None:
+        num_chunks = ceil(conf_length / chunk_size)
+    else:
+        num_chunks = 1
+        chunk_size = 1
 
-    return slurm_args
+    sbatch_cmds = []
+
+    for chunk_id in range(num_chunks):
+        start = chunk_id * chunk_size
+        end   = min(start + chunk_size - 1, conf_length -1)
+        sbatch_cmds.append([
+            "sbatch",
+            "--partition=general",
+            f"--job-name={job_name}_chunk{chunk_id}",
+            f"--time={time}",
+            "--nodes=1",
+            "--ntasks=1",
+            f"--output={job_path}/{job_name}_chunk{chunk_id}-%a.log",
+            f"--error={job_path}/{job_name}_chunk{chunk_id}-%a.err",
+            f"--cpus-per-task={cpus_per_task}",
+            f"--mem={mem}",
+            f"--array={start}-{end}",
+            f"--export=CONFIG_PATH={conf_path},CITY={city},INIT_ENV={global_vars.get('env_script', 'broken')}",
+            f"{prod_dir}/templates/job_templates/run_city.slurm",
+        ])
+
+    return sbatch_cmds
 
 
 def slurm_binary_arguments(global_vars : Dict,
@@ -327,7 +339,8 @@ def slurm_binary_arguments(global_vars : Dict,
                          job_path    : str,
                          ldc         : int,
                          prod_dir    : str,
-                         name        : str) -> List:
+                         name        : str,
+                         chunk_size  : int | None = None) -> List[List[str]]:
     '''
     returns all required arguments for the slurm binary configuration
     assuming an LDC on LDC basis
@@ -340,20 +353,33 @@ def slurm_binary_arguments(global_vars : Dict,
     mem           = cfg.get('mem', '2G')
     binary        = f"{prod_dir}/bin/{name}"
 
-    slurm_args = [
-        "sbatch",
-        "--partition=general",
-        f"--job-name={job_name}",
-        f"--time={time}",
-        "--nodes=1",
-        "--ntasks=1",
-        f"--output={job_path}/{job_name}.log",
-        f"--error={job_path}/{job_name}.err",
-        f"--cpus-per-task={cpus_per_task}",
-        f"--mem={mem}",
-        f"--array=0-{conf_length - 1}",
-        f"--export=CONFIG_PATH={conf_path},BINARY={binary},INIT_ENV={global_vars.get('env_script', 'broken')}",
-        f"{prod_dir}/templates/job_templates/run_binary.slurm",
-    ]
 
-    return slurm_args
+    if chunk_size is not None:
+        num_chunks = ceil(conf_length / chunk_size)
+    else:
+        num_chunks = 1
+        chunk_size = 1
+
+    sbatch_cmds = []
+
+    for chunk_id in range(num_chunks):
+        start = chunk_id * chunk_size
+        end   = min(start + chunk_size - 1, conf_length -1)
+
+        sbatch_cmds.append([
+            "sbatch",
+            "--partition=general",
+            f"--job-name={job_name}_chunk{chunk_id}",
+            f"--time={time}",
+            "--nodes=1",
+            "--ntasks=1",
+            f"--output={job_path}/{job_name}_chunk{chunk_id}-%a.log",
+            f"--error={job_path}/{job_name}_chunk{chunk_id}-%a.err",
+            f"--cpus-per-task={cpus_per_task}",
+            f"--mem={mem}",
+            f"--array={start}-{end}",
+            f"--export=CONFIG_PATH={conf_path},BINARY={binary},INIT_ENV={global_vars.get('env_script', 'broken')}",
+            f"{prod_dir}/templates/job_templates/run_binary.slurm",
+        ])
+
+    return sbatch_cmds
