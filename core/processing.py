@@ -133,7 +133,7 @@ def process_IC(global_vars : Dict,
     input_names = collect_input_names(global_vars, cfg)
     output_names, config_names = extract_output_names(global_vars, cfg, input_names)
 
-    write_configs(input_names, output_names, config_names, config, global_vars)
+    write_configs(input_names, output_names, config_names, config, cfg, global_vars)
 
     run_city_jobs(output_config_path, output_jobs_path, global_vars, cfg)
 
