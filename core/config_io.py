@@ -12,16 +12,24 @@ from core.immutables import processing_style
 from core.io         import prepend_all, quote_strings
 
 
-def write_jobs(config_names : List,
-               global_vars  : DictConfig) -> None:
-    '''
-    Writes the job files to the correct location
-    '''
-
 
 
 
 def extract_globals(cfg : DictConfig) -> Dict:
+    '''
+    Function that extracts global parameters into a
+    separate dictionary
+
+    
+    :param cfg: Config extracted from the job file 
+    :type cfg:  DictConfig
+
+
+    :return:    Global config dictionary
+    :rtype:     Dict[Any, Any] 
+    '''
+   
+    
     global_vars = {}
     if 'global' in cfg:
 
@@ -37,7 +45,34 @@ def extract_globals(cfg : DictConfig) -> Dict:
 def alter_config(config_text : str,
                  alterations : DictConfig) -> str:
     '''
-    take a python config from IC and alter it to match requirements
+    Alter a config (stored as a text string) using a dictionary of alterations
+
+    This extracts whats provided in the job configs and applies them verbatim. For example:
+
+    fixed:
+       nhits       : 10
+       compression : "'ZLIB4'"
+       q_cut       : 50,
+    
+    This will be implemented as:
+    nhits = 10
+    compression = 'ZLIB4'
+    cut_dictionary = {
+        q_cut = 50,
+        other_params = ...
+        }
+         
+
+    :param config_text: Text containing the template/base config 
+    :type config_text: str
+
+    :param alterations: Dictionary containing the parameters to be altered 
+    :type alterations: DictConfig
+
+
+    :return: Text containing the altered config
+    :rtype: str
+    
     '''
     for key, value in alterations.items():
         # nested dictionaries
@@ -56,10 +91,52 @@ def alter_config(config_text : str,
 
 
 
-def write_configs(input_names : List, output_names : List, config_names : [List], config : str, cfg : DictConfig, global_vars : Dict) -> None:
+def write_configs(input_names : List,
+                  output_names : List, 
+                  config_names : List[List], 
+                  config : str, 
+                  cfg : DictConfig, 
+                  global_vars : Dict) -> None:
+
     '''
-    write out the config files
+    Write configs to their corresponding directories, ready to be used
+    by the runner's sub-jobs. 
+    
+    This function produces configs on a file-by-file
+    basis, meaning you have input and output names, then the alterations
+    you desire within conf_dict.
+
+    Allows for the three processing styles:
+        - LDC    : LDC by LDC config creation at 
+                   {global_path}/{tag}/data/{city/binary}/{run_number}/LDC{0..N}
+        - FOLDER : Not yet implemented
+        - FILE   : Same as LDC, but without the LDC component at the end.
+
+    Allows for the processing style to alter based on how the input matches the 
+    output:
+        - match  : match the provided processing style (input matches output)
+        - funnel : all inputs into one output, hence 'funnelled'
+
+
+    :param input_names  : file input names for each runner 
+    :type  input_names  : List 
+
+    :param output_names : file output names for each runner 
+    :type  output_names : List 
+
+    :param config_names : List of all the config names for each runner
+    :type  config_names : List[List]
+
+    :param config       : Base config string to be altered for each config
+    :type  config       : str
+
+    :param cfg          : Dictionary used for extracting the processing style
+    :type  cfg          : DictConfig
+
+    :param global_vars  : Dictionary containing all global variables
+    :type  global_vars  : Dict 
     '''
+
 
     # add a bit in here for funnel that means you select file, do everything once with
     # the list provided
@@ -103,23 +180,24 @@ def write_configs(input_names : List, output_names : List, config_names : [List]
         case _:
             print('something else (fuck up)')
 
-    '''
-    # for each config name and output_name, write a config
-    for o_names, c_names in zip(output_names, config_names):
-        conf_dict = {'file_out' : o_names}
-        print(config)
-        print('='*20)
-        local_config = alter_config(config, conf_dict)
-        print(local_config)
-        exit()
-    '''
 
 def collect_input_folder(global_vars : Dict,
                          cfg         : DictConfig) -> List:
     '''
     using the provided information, ascertain input name of the folder
     this is used in the 'funnel' case, multiple files compiling into one
-    output. See `topology` for an example of how this is implemented.
+    output. See the `topology` binary for an example of how this is implemented.
+
+
+    :param global_vars : Dictionary containing all global variables
+    :type  global_vars : Dict 
+    
+    :param cfg         : Runner dictionary containing all relevant parameters 
+    :type  cfg         : DictConfig
+
+
+    :return            : Input folder path returned as list for compatibility reasons 
+    :rtype             : List 
     '''
 
     path = f"{cfg['pre_path']}{cfg['run_number']}/{cfg['post_path']}"
