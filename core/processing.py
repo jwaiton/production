@@ -93,7 +93,7 @@ def run_city_jobs(config_path: str,
                     while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
                         logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                         time.sleep(60)
-                    logging.info("Submitting:", " ".join(slurm_args))
+                    logging.info(f"Submitting {slurm_args}")
 
                     res = run_with_retries(slurm_args)
                     if not res.ok:
@@ -140,7 +140,7 @@ def run_binary_jobs(config_path : str,
                     while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
                         logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                         time.sleep(60)
-                    logging.info("Submitting:", " ".join(slurm_args))
+                    logging.info(f"Submitting {slurm_args}")
 
                     res = run_with_retries(slurm_args)
                     if not res.ok:
@@ -161,7 +161,7 @@ def run_binary_jobs(config_path : str,
                 while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
                     logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                     time.sleep(60)
-                logging.info("Submitting:", " ".join(slurm_args))
+                logging.info(f"Submitting {slurm_args}")
 
                 res = run_with_retries(slurm_args)
                 if not res.ok:
