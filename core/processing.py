@@ -13,7 +13,7 @@ from pathlib    import Path
 
 from omegaconf  import DictConfig
 from omegaconf  import OmegaConf
-from core.io        import print_cfg
+from core.io        import logging.info_cfg
 #from core.config_io import generate_configs
 from core.config_io import alter_config, generate_folder_structure, collect_input_names, extract_output_names, write_configs, slurm_city_arguments, slurm_binary_arguments, collect_input_folder
 
@@ -42,15 +42,15 @@ def run_city_jobs(config_path: str,
                 slurm_batch = slurm_city_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR, 100)
                 # wait for jobs to be finished
                 while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
-                    print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                    logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                     time.sleep(60)
                 for slurm_args in slurm_batch:
-                    time.sleep(15) # add a buffer to let jobs load into the cluster
+                    time.sleep(60) # add a buffer to let jobs load into the cluster
                     # wait for jobs to be finished
                     while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
-                        print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                        logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                         time.sleep(60)
-                    print("Submitting:", " ".join(slurm_args))
+                    logging.info("Submitting:", " ".join(slurm_args))
                     subprocess.run(slurm_args, check=True)
 
 
@@ -86,15 +86,15 @@ def run_binary_jobs(config_path : str,
                 slurm_batch = slurm_binary_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR, name, 100)
                 # wait for jobs to be finished
                 while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
-                    print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                    logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                     time.sleep(60)
                 for slurm_args in slurm_batch:
-                    time.sleep(15) # add a buffer to let jobs load into the cluster
+                    time.sleep(60) # add a buffer to let jobs load into the cluster
                     # wait for jobs to be finished
                     while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
-                        print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                        logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                         time.sleep(60)
-                    print("Submitting:", " ".join(slurm_args))
+                    logging.info("Submitting:", " ".join(slurm_args))
                     subprocess.run(slurm_args, check=True)
         case 'FILE':
 
@@ -102,15 +102,15 @@ def run_binary_jobs(config_path : str,
             slurm_batch = slurm_binary_arguments(global_vars, cfg, len(configs), config_path, job_path, 0, PROD_DIR, name)
             # wait for jobs to be finished
             while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
-                print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                 time.sleep(60)
             for slurm_args in slurm_batch:
-                time.sleep(15) # add a buffer to let jobs load into the cluster
+                time.sleep(60) # add a buffer to let jobs load into the cluster
                 # wait for jobs to be finished
                 while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
-                    print(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                    logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                     time.sleep(60)
-                print("Submitting:", " ".join(slurm_args))
+                logging.info("Submitting:", " ".join(slurm_args))
                 subprocess.run(slurm_args, check=True)
 
 def get_running_jobs(system : str) -> int:
@@ -119,10 +119,10 @@ def get_running_jobs(system : str) -> int:
             result = subprocess.run(["squeue", "-u", os.getenv("USER")], capture_output=True, text=True, check=True)
             lines = result.stdout.strip().split("\n")
             running_jobs = len(lines) - 1  # Subtract header line
-            print(f"Currently running jobs: {running_jobs}")
+            logging.info(f"Currently running jobs: {running_jobs}")
             return running_jobs
         except subprocess.CalledProcessError as e:
-            print(f"Error retrieving running jobs: {e.stderr}")
+            logging.info(f"Error retrieving running jobs: {e.stderr}")
             return 0
         except FileNotFoundError as e:
             logging.exception('')
