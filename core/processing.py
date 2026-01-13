@@ -16,13 +16,56 @@ from omegaconf  import OmegaConf
 from core.io        import logging.info_cfg
 #from core.config_io import generate_configs
 from core.config_io import alter_config, generate_folder_structure, collect_input_names, extract_output_names, write_configs, slurm_city_arguments, slurm_binary_arguments, collect_input_folder
-
+from core.types import RunResult
 from core.immutables import processing_style
 
 # add prod directory to path
 PROD_DIR = str(os.environ['PROD_DIR'])
 sys.path.append(os.path.expanduser(PROD_DIR))
 
+def slurm_delay_retries(attempt   : int,
+                        base      : int = 5,
+                        factor    : int = 2,
+                        max_delay : int = 300) -> int:
+    '''
+    calculates the delay time before rescheduling a sub-job
+    '''
+
+    delay = base * (factor ** (attempt - 1))
+    return min(delay, max_delay)
+
+
+def run_with_retries(slurm_args : List[str],
+                     retries    : int = 4,
+                     timeout    : int = 10,
+                     delay      : int = 180) -> None:
+    '''
+    try running slurm arguments for N retries with a given delay in seconds
+    '''
+
+    for attempt in range(1, retries + 1):
+        try:
+            result = subprocess.run(slurm_args, check = True, timeout = 10, capture_output=True, text = True)
+
+            return RunResult(ok = True,
+                             attempts = attempt,
+                             stdout   = result.stdout,
+                             stderr   = result.stderr)
+        except subprocess.TimeoutExpired:
+            msg = "timeout"
+        except subprocess.CalledProcessError as e:
+            msg = f"exit code {e.returncode}"
+        except _ as e:
+            msg = f"unexpected exit code {e}"
+
+        time.sleep(slurm_delay_retries(attempt, base = 30))
+        logging.info(f"Attempting resubmission...\nattempt={attempt}\nreason={msg}")
+
+    # if all retries fail
+    return RunResult(
+            ok=False,
+            attempts=retries,
+            error=f"failed after {retries} attempts due to {msg}")
 
 def run_city_jobs(config_path: str,
                   job_path     : str,
@@ -51,7 +94,10 @@ def run_city_jobs(config_path: str,
                         logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                         time.sleep(60)
                     logging.info("Submitting:", " ".join(slurm_args))
-                    subprocess.run(slurm_args, check=True)
+
+                    res = run_with_retries(slurm_args)
+                    if not res.ok:
+                        logging.error(f'sub-job failed:\n\n{slurm_args}\n\nwith error {res.error}')
 
 
 def run_binary_jobs(config_path : str,
@@ -95,7 +141,12 @@ def run_binary_jobs(config_path : str,
                         logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                         time.sleep(60)
                     logging.info("Submitting:", " ".join(slurm_args))
-                    subprocess.run(slurm_args, check=True)
+
+                    res = run_with_retries(slurm_args)
+                    if not res.ok:
+                        logging.error(f'sub-job failed:\n\n{slurm_args}\n\nwith error {res.error}')
+
+
         case 'FILE':
 
             configs = sorted(Path(config_path).glob("*.conf"))
@@ -111,7 +162,11 @@ def run_binary_jobs(config_path : str,
                     logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
                     time.sleep(60)
                 logging.info("Submitting:", " ".join(slurm_args))
-                subprocess.run(slurm_args, check=True)
+
+                res = run_with_retries(slurm_args)
+                if not res.ok:
+                    logging.error(f'sub-job failed:\n\n{slurm_args}\n\nwith error {res.error}')
+
 
 def get_running_jobs(system : str) -> int:
     if system == 'SLURM':
