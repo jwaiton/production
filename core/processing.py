@@ -54,7 +54,7 @@ def run_with_retries(slurm_args : List[str],
         except subprocess.TimeoutExpired:
             msg = "timeout"
         except subprocess.CalledProcessError as e:
-            msg = f"exit code {e.returncode}"
+            msg = f"exit code {e}"
         except _ as e:
             msg = f"unexpected exit code {e}"
 
