@@ -58,7 +58,10 @@ def run_with_retries(slurm_args : List[str],
         except _ as e:
             msg = f"unexpected exit code {e}"
 
-        time.sleep(slurm_delay_retries(attempt, base = 30))
+
+        slurm_delay = slurm_delay_retries(attempt, base = 30)
+        logging.info(f"Sleeping for {slurm_delay}")
+        time.sleep(slurm_delay)
         logging.info(f"Attempting resubmission...\nattempt={attempt}\nreason={msg}")
 
     # if all retries fail
