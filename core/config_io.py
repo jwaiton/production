@@ -20,16 +20,16 @@ def extract_globals(cfg : DictConfig) -> Dict:
     Function that extracts global parameters into a
     separate dictionary
 
-    
-    :param cfg: Config extracted from the job file 
+
+    :param cfg: Config extracted from the job file
     :type cfg:  DictConfig
 
 
     :return:    Global config dictionary
-    :rtype:     Dict[Any, Any] 
+    :rtype:     Dict[Any, Any]
     '''
-   
-    
+
+
     global_vars = {}
     if 'global' in cfg:
 
@@ -53,7 +53,7 @@ def alter_config(config_text : str,
        nhits       : 10
        compression : "'ZLIB4'"
        q_cut       : 50,
-    
+
     This will be implemented as:
     nhits = 10
     compression = 'ZLIB4'
@@ -61,18 +61,18 @@ def alter_config(config_text : str,
         q_cut = 50,
         other_params = ...
         }
-         
 
-    :param config_text: Text containing the template/base config 
+
+    :param config_text: Text containing the template/base config
     :type config_text: str
 
-    :param alterations: Dictionary containing the parameters to be altered 
+    :param alterations: Dictionary containing the parameters to be altered
     :type alterations: DictConfig
 
 
     :return: Text containing the altered config
     :rtype: str
-    
+
     '''
     for key, value in alterations.items():
         # nested dictionaries
@@ -92,37 +92,37 @@ def alter_config(config_text : str,
 
 
 def write_configs(input_names : List,
-                  output_names : List, 
-                  config_names : List[List], 
-                  config : str, 
-                  cfg : DictConfig, 
+                  output_names : List,
+                  config_names : List[List],
+                  config : str,
+                  cfg : DictConfig,
                   global_vars : Dict) -> None:
 
     '''
     Write configs to their corresponding directories, ready to be used
-    by the runner's sub-jobs. 
-    
+    by the runner's sub-jobs.
+
     This function produces configs on a file-by-file
     basis, meaning you have input and output names, then the alterations
     you desire within conf_dict.
 
     Allows for the three processing styles:
-        - LDC    : LDC by LDC config creation at 
+        - LDC    : LDC by LDC config creation at
                    {global_path}/{tag}/data/{city/binary}/{run_number}/LDC{0..N}
         - FOLDER : Not yet implemented
         - FILE   : Same as LDC, but without the LDC component at the end.
 
-    Allows for the processing style to alter based on how the input matches the 
+    Allows for the processing style to alter based on how the input matches the
     output:
         - match  : match the provided processing style (input matches output)
         - funnel : all inputs into one output, hence 'funnelled'
 
 
-    :param input_names  : file input names for each runner 
-    :type  input_names  : List 
+    :param input_names  : file input names for each runner
+    :type  input_names  : List
 
-    :param output_names : file output names for each runner 
-    :type  output_names : List 
+    :param output_names : file output names for each runner
+    :type  output_names : List
 
     :param config_names : List of all the config names for each runner
     :type  config_names : List[List]
@@ -134,7 +134,7 @@ def write_configs(input_names : List,
     :type  cfg          : DictConfig
 
     :param global_vars  : Dictionary containing all global variables
-    :type  global_vars  : Dict 
+    :type  global_vars  : Dict
     '''
 
 
@@ -158,6 +158,9 @@ def write_configs(input_names : List,
             for i in range(global_vars['LDCs']):
                 for i_names, o_names, c_names in zip(input_names[i], output_names[i], config_names[i]):
                     conf_dict = {'file_out' : o_names, 'files_in' : i_names}
+                    if 'MC' in global_vars:
+                        if global_vars['MC']:
+                            conf_dict['run_number'] = 0
                     print('conf_dict')
                     print(conf_dict)
                     local_config = alter_config(config, conf_dict)
@@ -190,14 +193,14 @@ def collect_input_folder(global_vars : Dict,
 
 
     :param global_vars : Dictionary containing all global variables
-    :type  global_vars : Dict 
-    
-    :param cfg         : Runner dictionary containing all relevant parameters 
+    :type  global_vars : Dict
+
+    :param cfg         : Runner dictionary containing all relevant parameters
     :type  cfg         : DictConfig
 
 
-    :return            : Input folder path returned as list for compatibility reasons 
-    :rtype             : List 
+    :return            : Input folder path returned as list for compatibility reasons
+    :rtype             : List
     '''
 
     path = f"{cfg['pre_path']}{cfg['run_number']}/{cfg['post_path']}"
