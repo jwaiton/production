@@ -279,7 +279,7 @@ def extract_output_names(global_vars : Dict,
                 file_names = [f.split('/')[-1] for f in LDC_files]
                 # generate them based on the number
                 # if the file name contains the tag, you know its been processed and can extract the number intelligently
-                if (f"_{cfg['run_number]'}_" in file_names[0]) and (f"_{cfg['run_number]'}_" in file_names[0]):
+                if (f"_{cfg['run_number']}_" in file_names[0]) and (f"_{cfg['run_number']}_" in file_names[0]):
                     # remove run numbers to avoid confusion
                     # eg: beersheba_kr_202606_test_001_ldc1_kr
                     #     becomes beersheba_001_ldc1_kr
