@@ -1,0 +1,93 @@
+#!/usr/bin/env python
+'''
+merge_psf - a simple method to merge psfs together, outputing singular psfs
+'''
+import os
+import sys
+from pathlib import Path
+from glob      import glob
+from functools import reduce
+
+from invisible_cities.io.dst_io import load_dst
+from invisible_cities.io.dst_io import df_writer
+
+import numpy  as np
+import pandas as pd
+import tables as tb
+
+import importlib.util
+from importlib.machinery import SourceFileLoader
+
+
+def load_config(path):
+    loader = SourceFileLoader("cfg", path)
+    spec = importlib.util.spec_from_loader("cfg", loader)
+
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Could not create module spec for {path}")
+
+    cfg  = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cfg)
+    return cfg
+
+
+def load_psf(file):
+    try:
+        return load_dst(file, "PSF", "PSFs")
+    except Exception as e:
+        print(f'File {file} broke! {e}')
+        return pd.DataFrame(columns = ["xr", "yr", "zr", "x", "y", "z", "factor", "nevt"]) 
+
+
+def combine_psfs(acc, new):
+    try:    
+        columns  = ["xr", "yr", "zr", "x", "y", "z"]
+        acc      = acc.assign(factor=acc.factor * acc.nevt)
+        new      = new.assign(factor=new.factor * new.nevt)
+        combined = pd.concat( [acc, new]
+                            , ignore_index = True
+                            , sort         = False
+                            )
+        combined = combined.groupby(columns, as_index=False).agg("sum")
+        average  = combined.factor / combined.nevt
+        acc      = combined.assign(factor = np.nan_to_num(average))
+        return acc
+    except Exception as e:
+        print(f'File broke! {e}')
+
+
+def merge_psf(*, files_in = '', file_out = 'merged_psf.psf'): 
+    
+    if files_in == '':
+        raise FileNotFoundError(f'{files_in} not found!')
+    print(f'Input folder of {files_in}\n')
+    print(f'Directed to {file_out}')
+    # collect all input files
+    files_in        = list(Path(files_in).rglob("*.h5"))
+    print(files_in)
+    combined_psf = reduce(combine_psfs, filter(lambda df: not df.empty, map(load_psf, files_in)))
+    # remove combined_psf
+    print(combined_psf)
+    
+    try:
+        with tb.open_file(files_in[0]) as file:
+            title = file.root.PSF.PSFs.title
+    except Exception as e:
+        print(f'{files_in[0]} sucks, breaks')
+
+    with tb.open_file(file_out, 'w') as h5out:
+        df_writer(h5out, combined_psf
+                 , "PSF", "PSFs"
+                 , compression = "ZLIB4"
+                 , descriptive_string = 'psf' 
+                 )
+
+if __name__ == '__main__':
+    path = Path(sys.argv[1])
+    print(f"Config path: {path}")
+    print(f"Exists: {path.exists()}")
+    print(f"Is file: {path.is_file()}")
+
+    args = load_config(str(path))
+    unpacked_args = {k: v for k, v in vars(args).items() if not k.startswith("__")}
+    merge_psf(**unpacked_args)
