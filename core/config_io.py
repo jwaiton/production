@@ -385,7 +385,7 @@ def condor_city_arguments(global_vars : Dict,
     assuming an LDC on LDC basis
     '''
     # take a list of all the configs
-    configs = sorted(Path(full_path).glob("*.conf"))
+    configs = sorted(Path(conf_path).glob("*.conf"))
 
     # collect all defaults
     job_name      = f"{global_vars.get('tag', 'tag')}-{cfg.get('city', 'city')}-LDC{ldc}"
