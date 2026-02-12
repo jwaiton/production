@@ -251,7 +251,17 @@ def get_running_jobs(system : str) -> int:
         except FileNotFoundError as e:
             logging.exception('')
             return 0
-
+    elif system == 'CONDOR':
+        try:
+            result = subprocess.run(["condor_q", "-autoformat", "ClusterId"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+            lines  = result.stdout.strip().split("\n")
+            return lines
+        except subprocess.CalledProcessError as e:
+            logging.info(f"Error retrieving running jobs: {e.stderr}")
+            return 0
+        except FileNotFoundError as e:
+            logging.exception('')
+            return 0
 
 def process_IC(global_vars : Dict,
                cfg         : DictConfig,
