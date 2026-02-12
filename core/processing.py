@@ -166,8 +166,8 @@ def run_city_jobs(config_path: str,
 
 
 
-                   case _:
-                       raise KeyError(f"Cluster system: {global_vars['cluster_sys']} not found")
+                    case _:
+                        raise KeyError(f"Cluster system: {global_vars['cluster_sys']} not found")
 
 def run_binary_jobs(config_path : str,
                     job_path    : str,
