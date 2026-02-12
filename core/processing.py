@@ -15,7 +15,7 @@ from omegaconf  import DictConfig
 from omegaconf  import OmegaConf
 from core.io        import print_cfg
 #from core.config_io import generate_configs
-from core.config_io import alter_config, generate_folder_structure, collect_input_names, extract_output_names, write_configs, slurm_city_arguments, slurm_binary_arguments, collect_input_folder
+from core.config_io import alter_config, generate_folder_structure, collect_input_names, extract_output_names, write_configs, slurm_city_arguments, slurm_binary_arguments, condor_city, arguments, collect_input_folder
 from core.types import RunResult
 from core.immutables import processing_style
 
@@ -33,6 +33,44 @@ def slurm_delay_retries(attempt   : int,
 
     delay = base * (factor ** (attempt - 1))
     return min(delay, max_delay)
+
+
+def run_with_retries_condor(condor_args : List[str],
+                            retries     : int = 4,
+                            timeout     : int = 10,
+                            delay       : int = 180) -> None:
+    '''
+    try running condor arguments for N retries with a given delay in seconds
+    '''
+
+    for attempt in range(1, retries + 1):
+        try:
+            result = subprocess.run(["condor_submit", "-"], input = condor_args, check = True, timeout = 10, capture_output=True, text = True)
+
+            return RunResult(ok = True,
+                             attempts = attempt,
+                             stdout   = result.stdout,
+                             stderr   = result.stderr)
+        except subprocess.TimeoutExpired:
+            msg = "timeout"
+        except subprocess.CalledProcessError as e:
+            msg = f"exit code {e}"
+        except _ as e:
+            msg = f"unexpected exit code {e}"
+
+
+        slurm_delay = slurm_delay_retries(attempt, base = 30)
+        logging.info(f"Sleeping for {slurm_delay}")
+        time.sleep(slurm_delay)
+        logging.info(f"Attempting resubmission...\nattempt={attempt}\nreason={msg}")
+
+    # if all retries fail
+    return RunResult(
+            ok=False,
+            attempts=retries,
+            error=f"failed after {retries} attempts due to {msg}")
+
+
 
 
 def run_with_retries(slurm_args : List[str],
