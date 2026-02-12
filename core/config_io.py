@@ -372,6 +372,67 @@ def generate_folder_structure(global_vars : Dict,
     return (specific_config_path, specific_data_path, specific_jobs_path)
 
 
+def condor_city_arguments(global_vars : Dict,
+                         cfg : DictConfig,
+                         conf_length : int,
+                         conf_path   : str,
+                         job_path    : str,
+                         ldc         : int,
+                         prod_dir    : str,
+                         chunk_size  : int | None = None) -> List[List[str]]:
+    '''
+    returns all required arguments for the condor city configuration
+    assuming an LDC on LDC basis
+    '''
+    # take a list of all the configs
+    configs = sorted(Path(full_path).glob("*.conf"))
+
+    # collect all defaults
+    job_name      = f"{global_vars.get('tag', 'tag')}-{cfg.get('city', 'city')}-LDC{ldc}"
+    time          = cfg.get('time', '24:00:00')
+    cpus_per_task = cfg.get('cpus-per-task', 2)
+    mem           = cfg.get('mem', '2G')
+    city          = cfg.get('city', 'city')
+
+    if chunk_size is not None:
+        num_chunks = ceil(conf_length / chunk_size)
+    else:
+        num_chunks = 1
+        chunk_size = 1
+
+    sbatch_cmds = []
+    # chunks works like this here:
+    # submit the job with N configs in it
+    # so you separate up the chunks to be covering N configs
+
+    chunked_configs = [configs[i:i + chunk_size] for i in range(0, conf_length, chunk_size)]
+    # format to pass into the config
+    chunked_configs = ["\n".join(chunk) for chunk in chunked_configs]
+
+    for chunk_id, config_batch in enumerate(chunked_configs):
+        submission_str = f"""\
+                executable     = {prod_dir}/templates/job_templates/run_city_condor.sh
+                arguments      = $(config_path) {global_vars.get('env_script', 'broken')} {city}
+                output         = {job_path}/{job_name}_chunk{chunk_id}-$(Process).out"
+                error          = {job_path}/{job_name}_chunk{chunk_id}-$(Process).err"
+                log            = {job_path}/{job_name}_chunk{chunk_id}-$(Process).log"
+                max_idle       = 100
+                request_cpus   = {cpus_per_task}
+                request_memory = {mem}
+                request_disk   = 5G
+
+                queue config_path from (
+                {config_batch}
+                )
+        """
+        sbatch_cmds.append(submission_str)
+
+    return sbatch_cmds
+
+
+
+
+
 def slurm_city_arguments(global_vars : Dict,
                          cfg : DictConfig,
                          conf_length : int,
