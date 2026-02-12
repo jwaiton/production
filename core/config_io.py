@@ -407,7 +407,7 @@ def condor_city_arguments(global_vars : Dict,
 
     chunked_configs = [configs[i:i + chunk_size] for i in range(0, conf_length, chunk_size)]
     # format to pass into the config
-    chunked_configs = ["\n".join(chunk) for chunk in chunked_configs]
+    chunked_configs = ["\n".join(str(chunk)) for chunk in chunked_configs]
 
     for chunk_id, config_batch in enumerate(chunked_configs):
         submission_str = f"""\
