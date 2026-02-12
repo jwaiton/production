@@ -123,23 +123,51 @@ def run_city_jobs(config_path: str,
             for i in range(global_vars['LDCs']):
                 full_path = os.path.join(config_path, f'ldc{i+1}')
                 configs = sorted(Path(full_path).glob("*.conf"))
-                slurm_batch = slurm_city_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR, 100)
-                # wait for jobs to be finished
-                while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
-                    logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
-                    time.sleep(60)
-                for slurm_args in slurm_batch:
-                    time.sleep(60) # add a buffer to let jobs load into the cluster
-                    # wait for jobs to be finished
-                    while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
-                        logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
-                        time.sleep(60)
-                    logging.info(f"Submitting {slurm_args}")
 
-                    res = run_with_retries(slurm_args)
-                    if not res.ok:
-                        logging.error(f'sub-job failed:\n\n{slurm_args}\n\nwith error {res.error}')
+                match global_vars['cluster_sys']:
+                    case 'SLURM':
 
+                        slurm_batch = slurm_city_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR, 100)
+                        # wait for jobs to be finished
+                        while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
+                            logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                            time.sleep(60)
+                        for slurm_args in slurm_batch:
+                            time.sleep(60) # add a buffer to let jobs load into the cluster
+                            # wait for jobs to be finished
+                            while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
+                                logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                                time.sleep(60)
+                            logging.info(f"Submitting {slurm_args}")
+
+                            res = run_with_retries(slurm_args)
+                            if not res.ok:
+                                logging.error(f'sub-job failed:\n\n{slurm_args}\n\nwith error {res.error}')
+
+                   case 'CONDOR':
+                       condor_batch = condor_city_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR, 100)
+
+                       # wait for jobs to be finished
+                       while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
+                            logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                            time.sleep(60)
+                       for condor_args in condor_batch:
+                            time.sleep(60) # add a buffer to let jobs load
+                            while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
+                                logging.info(f"Currently running jobs: {get_running_jobs(global_vars.get('cluster_sys'))}")
+                                time.sleep(60)
+                            logging.info(f"Submitting {slurm_args}")
+
+                            res = run_with_retries_condor(condor_args)
+                            if not res.ok:
+                                logging.error(f'sub-job failed:\n\n{slurm_args}\n\nwith error {res.error}')
+
+
+
+
+
+                   case _:
+                       raise KeyError(f"Cluster system: {global_vars['cluster_sys']} not found")
 
 def run_binary_jobs(config_path : str,
                     job_path    : str,
