@@ -144,8 +144,8 @@ def run_city_jobs(config_path: str,
                             if not res.ok:
                                 logging.error(f'sub-job failed:\n\n{slurm_args}\n\nwith error {res.error}')
 
-                   case 'CONDOR':
-                       condor_batch = condor_city_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR, 100)
+                    case 'CONDOR':
+                        condor_batch = condor_city_arguments(global_vars, cfg, len(configs), full_path, job_path, i+1, PROD_DIR, 100)
 
                        # wait for jobs to be finished
                        while get_running_jobs(global_vars.get('cluster_sys')) > global_vars.get('max_num_jobs'):
